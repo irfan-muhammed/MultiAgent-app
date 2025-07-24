@@ -2,7 +2,8 @@
 
 # 🤖 UDS Multi-Agent QA Chatbot
 
-A scalable, LLM-powered multi-agent system to query and compare **Unified Diagnostic Services (UDS)** documentation using RAG + reasoning agents, Traceloop observability, and a Streamlit UI.
+A scalable, LLM-powered multi-agent system to query and compare **Unified Diagnostic Services (UDS)- ISO 14229** documentation using RAG + reasoning agents, Traceloop observability, and a Streamlit UI.
+
 
 ---
 
@@ -64,12 +65,13 @@ cd <your-repo>
 ```
 GOOGLE_API_KEY=your_google_gemini_key
 TRACELOOP_API_KEY=your_traceloop_key
+COHERE_API_KEY=your_cohere_key
 ```
 
 ### 3️⃣ Install Dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirement.txt
 ```
 
 ### 4️⃣ Run Locally
@@ -88,14 +90,14 @@ Then visit 👉 [http://localhost:8501](http://localhost:8501)
 
 ---
 
-## 📸 UI Screenshots
+## 📸 UI Screenshots: Attachd The  CHAT HISTORY which contains UI
 
 * Upload `.txt` files of UDS services
 * Click **"Initialize Services"**
 * Ask any question:
 
-  * *“Compare diagnostic session control and security access”*
-  * *“What is the purpose of Communication Control?”*
+  * *“Compare ECU Reset, Tester Present, Link control services and explain how they are related”*
+  * *“	In a scenario where the ECU is reset frequently, how should Tester Present messages be scheduled?”*
 
 ---
 
