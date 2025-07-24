@@ -1,0 +1,184 @@
+# Service: TesterPresent (ID: 0x3E)
+# Section: 9.6
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 63 — CommunicationControl request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Request SID 0x28 CC
+#2 controlType = enableRxAndTxWithEnhancedAddressInformation, 0x05 ERXTX
+suppressPosRspMsgIndicationBit = FALSE
+#3 communicationType = normal messages 0x01 NMCP
+#4 nodeIdentificationNumber (high byte) 0x00 NIN
+#5 nodeIdentificationNumber (low byte) 0x0A NIN
+Table 64 defines the CommunicationControl positive response message flow example.
+Table 64 — CommunicationControl positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Response SID 0x68 CCPR
+#2 controlType = enableRxAndTxWithEnhancedAddressInformation, 0x05 ERXTX
+suppressPosRspMsgIndicationBit = FALSE
+9.6 TesterPresent (0x3E) service
+9.6.1 Service description
+This service is used to indicate to a server (or servers) that a client is still connected to the vehicle and that
+certain diagnostic services and/or communication that have been previously activated are to remain active.
+This service is used to keep one or multiple servers in a diagnostic session other than the defaultSession.
+This can either be done by transmitting the TesterPresent request message periodically or in case of the
+absence of other diagnostic services to prevent the server(s) from automatically returning to the
+defaultSession. The detailed session requirements that apply to the use of this service when keeping a single
+server or multiple servers in a diagnostic session other than the defaultSession can be found in the
+implementation specifications of ISO 14229.
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+9.6.2 Request message
+9.6.2.1 Request message definition
+Table 65 defines the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+58 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 65 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 TesterPresent Request SID M 0x3E TP
+#2 sub-function = [ zeroSubFunction ] M 0x00 / 0x80 LEV_ZSUBF
+9.6.2.2 Request message sub-function parameter $Level (LEV_) definition
+Table 66 specifies the sub-function parameter values defined for this service
+(suppressPosRspMsgIndicationBit (bit 7) not shown).
+Table 66 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 zeroSubFunction M ZSUBF
+This parameter value is used to indicate that no sub-functionvalue beside the
+suppressPosRspMsgIndicationBit is supported by this service.
+0x01 – 0x7F ISOSAEReserved M ISOSAERESRVD
+This range of values is reserved by this document.
+9.6.2.3 Request message data-parameter definition
+This service does not support data-parameters in the request message.
+9.6.3 Positive response message
+9.6.3.1 Positive response message definition
+Table 67 defines the positive response message.
+Table 67 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 TesterPresent Response SID M 0x7E TPPR
+#2 sub-function = [ zeroSubFunction ] M 0x00 LEV_ZSUBF
+9.6.3.2 Positive response message data-parameter definition
+Table 68 defines the data-parameter of the positive response message.
+Table 68 — Response message data-parameter definition
+Definition
+zeroSubFunction
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 59
+
+ISO 14229-1:2013(E)
+9.6.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 69. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 69 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+9.6.5 Message flow example(s) TesterPresent
+9.6.5.1 Example #1 - TesterPresent (suppressPosRspMsgIndicationBit = FALSE)
+Table 70 defines the TesterPresent request message flow example #1.
+Table 70 — TesterPresent request message flow example #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TesterPresent Request SID 0x3E TP
+#2 zeroSubFunction, suppressPosRspMsgIndicationBit = FALSE 0x00 ZSUBF
+Table 71 defines the TesterPresent positive response message flow example #1.
+Table 71 — TesterPresent positive response message flow example #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TesterPresent Response SID 0x7E TPPR
+#2 zeroSubFunction, suppressPosRspMsgIndicationBit = FALSE 0x00 ZSUBF
+9.6.5.2 Example #2 - TesterPresent (suppressPosRspMsgIndicationBit = TRUE)
+Table 72 defines the TesterPresent request message flow example #2.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+60 © ISO 2013 – All rights reserved
+
+## Tables
+---
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Request SID |  | 0x28 | CC
+#2 | controlType = enableRxAndTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x05 | ERXTX
+#3 | communicationType = normal messages |  | 0x01 | NMCP
+#4 | nodeIdentificationNumber (high byte) |  | 0x00 | NIN
+#5 | nodeIdentificationNumber (low byte) |  | 0x0A | NIN
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Response SID |  | 0x68 | CCPR
+#2 | controlType = enableRxAndTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x05 | ERXTX
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | TesterPresent Request SID | M | 0x3E | TP
+#2 | sub-function = [ zeroSubFunction ] | M | 0x00 / 0x80 | LEV_ZSUBF
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | zeroSubFunction
+This parameter value is used to indicate that no sub-functionvalue beside the
+suppressPosRspMsgIndicationBit is supported by this service. | M | ZSUBF
+0x01 – 0x7F | ISOSAEReserved
+This range of values is reserved by this document. | M | ISOSAERESRVD
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | TesterPresent Response SID | M | 0x7E | TPPR
+#2 | sub-function = [ zeroSubFunction ] | M | 0x00 | LEV_ZSUBF
+
+---
+
+Definition
+zeroSubFunction
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TesterPresent Request SID |  | 0x3E | TP
+#2 | zeroSubFunction, suppressPosRspMsgIndicationBit = FALSE |  | 0x00 | ZSUBF
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TesterPresent Response SID |  | 0x7E | TPPR
+#2 | zeroSubFunction, suppressPosRspMsgIndicationBit = FALSE |  | 0x00 | ZSUBF

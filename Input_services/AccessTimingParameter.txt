@@ -1,0 +1,389 @@
+# Service: AccessTimingParameter (ID: 0x83)
+# Section: 9.7
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 72 — TesterPresent request message flow example #2
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TesterPresent Request SID 0x3E TP
+#2 zeroSubFunction, suppressPosRspMsgIndicationBit = TRUE 0x80 ZSUBF
+There is no response sent by the server(s).
+9.7 AccessTimingParameter (0x83) service
+9.7.1 Service description
+The AccessTimingParameter service is used to read and change the default timing parameters of a
+communication link for the duration this communication link is active.
+The use of this service is complex and depends on the server’s capability and the data link topology. Only one
+extended timing parameter set will be supported per diagnostic session. It is recommended to use this service
+only with physical addressing, because of the different sets of extended timing parameters supported by the
+servers.
+It is recommended to use the following sequence of services:
+⎯ DiagnosticSessionControl (diagnosticSessionType) service;
+⎯ AccessTimingParameter (readExtendedTimingParameterSet) service;
+⎯ AccessTimingParameter (setTimingParametersToGivenValues) service;
+For the case a response is required to be sent by the server the client and server shall activate the new timing
+parameter settings after the server has sent the AccessTimingParameter positive response message. In case
+no response message is allowed the client and the server shall activate the new timing parameter after the
+transmission/reception of the request message.
+The server and the client shall reset their timing parameters to the default values after a successful switching
+to another or the same diagnostic session (e.g. via DiagnosticSessionControl, ECUReset service, or a session
+timing timeout).
+The AccessTimingParameter service provides four different modes for the access to the server timing
+parameters:
+⎯ readExtendedTimingParameterSet;
+⎯ setTimingParametersToDefaultValues;
+⎯ readCurrentlyActiveTimingParameters;
+⎯ setTimingParametersToGivenValues;
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 61
+
+ISO 14229-1:2013(E)
+9.7.2 Request message
+9.7.2.1 Request message definition
+Table 73 defines the request message.
+Table 73 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 AccessTimingParameter Request SID M 0x83 ATP
+#2 sub-function = [ timingParameterAccessType ] M 0x00 – 0xFF LEV_TPAT_
+TimingParameterRequestRecord [ TPREQR_
+#3 byte#1 C 0x00 – 0xFF B1
+: : : : :
+#n byte#m ] C 0x00 – 0xFF Bm
+C: The TimingParameterRequestRecord is only present if timingParameterAccessType =
+setTimingParametersToGivenValues. The structure and content of the TimingParameterRequestRecord is data link layer
+dependend and therefore defined in the implementation specification(s) of ISO 14229.
+9.7.2.2 Request message sub-function parameter $Level (LEV_) definition
+The sub-function parameter timingParameterAccessType is used by the AccessTimingParameter service to
+select the specific behaviour of the server. Explanations and usage of the possible timingParameterIdentifiers
+are detailed in Table 74. The following sub-function values are specified (suppressPosRspMsgIndicationBit
+(bit 7) not shown):
+Table 74 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document.
+0x01 readExtendedTimingParameterSet U RETPS
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = readExtendedTimingParameterSet, the
+server shall read the extended timing parameter set, i.e. the values that the
+server is capable of supporting.
+If the read access to the timing parameter set is successful, the server shall
+send an AccessTimingParameter response primitive with the positive
+response parameters.
+If the read access to the timing parameters set is not successful, the server
+shall send a negative response message with the appropriate negative
+response code.
+This sub-function is used to provide an extra set of timing parameters for the
+currently active diagnostic session.
+With the timingParameterAccessType =
+setTimingParametersToGivenValues only this set (read by
+timingParameterAccessType = readExtendedTimingParameterSet) of timing
+parameters can be set.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+62 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 74 — (continued)
+Bits 6 – 0 Description Cvt Mnemonic
+0x02 setTimingParametersToDefaultValues U STPTDV
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = setTimingParametersToDefaultValues, the
+server shall change all timing parameters to the default values and send an
+AccessTimingParameter response primitive with the positive response
+parameters before the default timing parameters become active (if
+suppressPosRspMsgIndicationBit is set to 'FALSE', otherwise the timing
+parameters shall become active after the successful evaluation of the
+request message).
+If the timing parameters cannot be changed to default values for any reason,
+the server shall maintain the currently active timing parameters and send a
+negative response message with the appropriate negative response code.
+The definition of the default timing values depends on the used data link and
+is specified in the implementation specification(s) of ISO 14229.
+0x03 readCurrentlyActiveTimingParameters U RCATP
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = readCurrentlyActiveTimingParameters, the
+server shall read the currently used timing parameters.
+If the read access to the timing parameters is successful, the server shall
+send an AccessTimingParameter response primitive with the positive
+response parameters.
+If the read access to the currently used timing parameters is impossible for
+any reason, the server shall send a negative response message with the
+appropriate negative response code.
+0x04 setTimingParametersToGivenValues U STPTGV
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = setTimingParametersToGivenValues, the
+server shall check if the timing parameters can be changed under the
+present conditions.
+If the conditions are valid, the server shall perform all actions necessary to
+change the timing parameters and send an AccessTimingParameter
+response primitive with the positive response parameters before the new
+timing parameter values become active (suppressPosRspMsgIndicationBit is
+set to 'FALSE', otherwise the timing parameters shall become active after
+the successful evaluation of the request message).
+If the timing parameters cannot be changed by any reason, the server shall
+maintain the currently active timing parameters and send a negative
+response message with the appropriate negative response code.
+It is not possible to set the timing parameters of the server to any set of
+values between the minimum and maximum values read via
+timingParameterAccessType = readExtendedTimingParameterSet. The
+timing parameters of the server can only be set to exactly the timing
+parameters read via timingParameterAccessType =
+readExtendedTimingParameterSet. A request to do so shall be rejected by
+the server.
+0x05 – 0xFF ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 63
+
+ISO 14229-1:2013(E)
+9.7.2.3 Request message data-parameter definition
+Table 75 defines the data-parameter of the request message.
+Table 75 — Request message data-parameter definition
+Definition
+TimingParameterRequestRecord
+This parameter record contains the timing parameter values to be set in the server via timingParameterAccessType =
+setTimingParametersToGivenValues. The content and structure of this parameter record is data link layer specific and
+can be found in the implementation specification(s) of ISO 14229 e.g. ISO 14229-3.
+9.7.3 Positive response message
+9.7.3.1 Positive response message definition
+Table 76 defines the positive response message.
+Table 76 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 AccessTimingParameter Response SID M 0xC3 ATPPR
+#2 timingParameterAccessType M 0x00 – 0x7F TPAT_
+TimingParameterResponseRecord [ TPRSPR_
+#3 byte#1 C 0x00 – 0xFF B1
+: : : : :
+#n byte#m ] C 0x00 – 0xFF Bm
+C: The TimingParameterResponseRecord is only present if timingParameterAccessType =
+readExtendedTimingParameterSet or readCurrentlyActiveTimingParameters. The structure and content of the
+TimingParameterResponseRecord is data link layer dependend and therefore defined in the implementation
+specification(s) of ISO 14229.
+9.7.3.2 Positive response message data-parameter definition
+Table 77 defines the data-parameters of the positive response message.
+Table 77 — Response message data-parameter definition
+Definition
+timingParameterAccessType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+TimingParameterResponseRecord
+This parameter record contains the timing parameter values read from the server via timingParameterAccessType =
+readExtendedTimingParameterSet or readCurrentlyActiveTimingParameters. The content and structure of this parameter
+record is data link layer specific and can be found in the implementation specification(s) of ISO 14229.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+64 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+9.7.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 78. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 78 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+The length of the message or the format is wrong.
+0x22 conditionsNotCorrect CNC
+This NRC shall be returned if the criteria for the request AccessTimingParameter are not
+met.
+0x31 requestOutOfRange ROOR
+This NRC shall be sent if the TimingParameterRequestRecord contains invalid timing
+parameter values.
+9.7.5 Message flow example(s) AccessTimingParameter
+9.7.5.1 Example #1 – set timing parameters to default values
+This message flow shows how to set the default timing parameters in a server. The client requests to have a
+response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the sub-function parameter) to
+"FALSE" ('0').
+Table 79 defines the AccessTimingParameter request message flow example #1.
+Table 79 — AccessTimingParameter request message flow example #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 AccessTimingParameter Request SID 0x83 ATP
+#2 timingParameterAccessType = 0x02 TPAT_STPTDV
+setTimingParametersToDefaultValues;
+suppressPosRspMsgIndicationBit = FALSE
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 65
+
+## Tables
+---
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TesterPresent Request SID |  | 0x3E | TP
+#2 | zeroSubFunction, suppressPosRspMsgIndicationBit = TRUE |  | 0x80 | ZSUBF
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | AccessTimingParameter Request SID | M | 0x83 | ATP
+#2 | sub-function = [ timingParameterAccessType ] | M | 0x00 – 0xFF | LEV_TPAT_
+#3
+:
+#n | TimingParameterRequestRecord [
+byte#1
+:
+byte#m ] | C
+:
+C | 0x00 – 0xFF
+:
+0x00 – 0xFF | TPREQR_
+B1
+:
+Bm
+C: The TimingParameterRequestRecord is only present if timingParameterAccessType =
+setTimingParametersToGivenValues. The structure and content of the TimingParameterRequestRecord is data link layer
+dependend and therefore defined in the implementation specification(s) of ISO 14229. |  |  |  | 
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | ISOSAEReserved
+This value is reserved by this document. | M | ISOSAERESRVD
+0x01 | readExtendedTimingParameterSet
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = readExtendedTimingParameterSet, the
+server shall read the extended timing parameter set, i.e. the values that the
+server is capable of supporting.
+If the read access to the timing parameter set is successful, the server shall
+send an AccessTimingParameter response primitive with the positive
+response parameters.
+If the read access to the timing parameters set is not successful, the server
+shall send a negative response message with the appropriate negative
+response code.
+This sub-function is used to provide an extra set of timing parameters for the
+currently active diagnostic session.
+With the timingParameterAccessType =
+setTimingParametersToGivenValues only this set (read by
+timingParameterAccessType = readExtendedTimingParameterSet) of timing
+parameters can be set. | U | RETPS
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x02 | setTimingParametersToDefaultValues
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = setTimingParametersToDefaultValues, the
+server shall change all timing parameters to the default values and send an
+AccessTimingParameter response primitive with the positive response
+parameters before the default timing parameters become active (if
+suppressPosRspMsgIndicationBit is set to 'FALSE', otherwise the timing
+parameters shall become active after the successful evaluation of the
+request message).
+If the timing parameters cannot be changed to default values for any reason,
+the server shall maintain the currently active timing parameters and send a
+negative response message with the appropriate negative response code.
+The definition of the default timing values depends on the used data link and
+is specified in the implementation specification(s) of ISO 14229. | U | STPTDV
+0x03 | readCurrentlyActiveTimingParameters
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = readCurrentlyActiveTimingParameters, the
+server shall read the currently used timing parameters.
+If the read access to the timing parameters is successful, the server shall
+send an AccessTimingParameter response primitive with the positive
+response parameters.
+If the read access to the currently used timing parameters is impossible for
+any reason, the server shall send a negative response message with the
+appropriate negative response code. | U | RCATP
+0x04 | setTimingParametersToGivenValues
+Upon receiving an AccessTimingParameter indication primitive with
+timingParameterAccessType = setTimingParametersToGivenValues, the
+server shall check if the timing parameters can be changed under the
+present conditions.
+If the conditions are valid, the server shall perform all actions necessary to
+change the timing parameters and send an AccessTimingParameter
+response primitive with the positive response parameters before the new
+timing parameter values become active (suppressPosRspMsgIndicationBit is
+set to 'FALSE', otherwise the timing parameters shall become active after
+the successful evaluation of the request message).
+If the timing parameters cannot be changed by any reason, the server shall
+maintain the currently active timing parameters and send a negative
+response message with the appropriate negative response code.
+It is not possible to set the timing parameters of the server to any set of
+values between the minimum and maximum values read via
+timingParameterAccessType = readExtendedTimingParameterSet. The
+timing parameters of the server can only be set to exactly the timing
+parameters read via timingParameterAccessType =
+readExtendedTimingParameterSet. A request to do so shall be rejected by
+the server. | U | STPTGV
+0x05 – 0xFF | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+Definition
+TimingParameterRequestRecord
+This parameter record contains the timing parameter values to be set in the server via timingParameterAccessType =
+setTimingParametersToGivenValues. The content and structure of this parameter record is data link layer specific and
+can be found in the implementation specification(s) of ISO 14229 e.g. ISO 14229-3.
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | AccessTimingParameter Response SID | M | 0xC3 | ATPPR
+#2 | timingParameterAccessType | M | 0x00 – 0x7F | TPAT_
+#3
+:
+#n | TimingParameterResponseRecord [
+byte#1
+:
+byte#m ] | C
+:
+C | 0x00 – 0xFF
+:
+0x00 – 0xFF | TPRSPR_
+B1
+:
+Bm
+C: The TimingParameterResponseRecord is only present if timingParameterAccessType =
+readExtendedTimingParameterSet or readCurrentlyActiveTimingParameters. The structure and content of the
+TimingParameterResponseRecord is data link layer dependend and therefore defined in the implementation
+specification(s) of ISO 14229. |  |  |  | 
+
+---
+
+Definition
+timingParameterAccessType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+TimingParameterResponseRecord
+This parameter record contains the timing parameter values read from the server via timingParameterAccessType =
+readExtendedTimingParameterSet or readCurrentlyActiveTimingParameters. The content and structure of this parameter
+record is data link layer specific and can be found in the implementation specification(s) of ISO 14229.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+The length of the message or the format is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+This NRC shall be returned if the criteria for the request AccessTimingParameter are not
+met. | CNC
+0x31 | requestOutOfRange
+This NRC shall be sent if the TimingParameterRequestRecord contains invalid timing
+parameter values. | ROOR
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | AccessTimingParameter Request SID |  | 0x83 | ATP
+#2 | timingParameterAccessType =
+setTimingParametersToDefaultValues;
+suppressPosRspMsgIndicationBit = FALSE |  | 0x02 | TPAT_STPTDV

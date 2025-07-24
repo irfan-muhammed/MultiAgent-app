@@ -1,0 +1,273 @@
+# Service: ControlDTCSetting (ID: 0x84)
+# Section: 9.9
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 84 — Response message data-parameter definition
+Definition
+securityDataResponseRecord
+This parameter contains the data as processed by the Security Sub-Layer.
+9.8.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 85. The response codes are always sent without
+encryption, even if according to the configurationProfile in the request A_PDU the response A_PDU has to be
+encrypted. The listed negative responses shall be used if the error scenario applies to the server.
+Table 85 — Supported negative response codes
+NRC Description Mnemonic
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+The server shall use this response code, if the length of the request A_PDU is not
+correct.
+0x38 – 0x4F reservedByExtendedDataLinkSecurityDocument RBEDLSD
+This range of values is reserved by extended data link security.
+NOTE The response codes listed above apply to the SecuredDataTransmission (0x84) service. In case the
+diagnostic service performed in a secured mode requires a negative response then this negative response is send to the
+client in a secured mode via a SecuredDataTransmission positive response message.
+9.9 ControlDTCSetting (0x85) service
+9.9.1 Service description
+The ControlDTCSetting service shall be used by a client to stop or resume the updating of DTC status bits in
+the server(s). DTC status bits are reported in the statusOfDTC parameter of the positive response to certain
+subfunctions of ReadDTCInformation (see D.2 for definition of the bits).
+The ControlDTCSetting request message can be used to stop the updating of DTC status bits in an individual
+server or a group of servers. If the server being addressed is not able to stop the updating of DTC status bits,
+it shall respond with a ControlDTCSetting negative response message indicating the reason for the reject.
+When the server accepts a ControlDTCSetting request with a subfunction value of DTCSettingType = off, the
+server shall suspend any updates to the DTC status bits (i.e., freeze current values) until the functionality is
+enabled again. The update of the DTC status bit information shall continue once a ControlDTCSetting request
+is performed with sub-function set to "on" or a transition to a session where ControlDTCSetting is not
+supported occurs (e.g., session layer timeout to defaultSession, ECU reset, etc.). The server shall still send a
+positive response if the service is supported in the active session with a requested sub-function set to either
+"on" or "off" even if the requested DTC setting state is already active.
+If a ClearDiagnosticInformation (0x14) service is sent by the client the ControlDTCSetting shall not prohibit
+resetting the server's DTC status bits. The behaviour of the individual DTC status bits shall be implemented
+according to the definitions in D.2, Figure D.1 - Figure D.8.
+DTC status bits document certain information relative to a numerical identifier (DTC) that represents a specific
+fault condition(s). ControlDTCSetting only switches on/off the DTC status bit updating. ControlDTCSetting
+service is not intended to cause fault monitoring to be switched off nor is it intended to cause failsoft strategies
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 71
+
+ISO 14229-1:2013(E)
+to be disabled. It is not recommended that failsoft or failsafe strategies be directly linked or coupled with DTC
+status bits (e.g., an accepted ClearDiagnosticInformation request does not directly remove any active failsoft).
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+9.9.2 Request message
+9.9.2.1 Request message definition
+Table 86 defines the request message.
+Table 86 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 ControlDTCSetting Request SID M 0x85 CDTCS
+#2 sub-function = [ DTCSettingType ] M LEV_DTCSTP_
+0x00 – 0xFF
+DTCSettingControlOptionRecord [] = [ DTCSCOR_
+#3 parameter#1 U 0x00 – 0xFF PARA1
+: : : : :
+#n parameter#m U 0x00 – 0xFF PARAm
+9.9.2.2 Request message sub-function parameter $Level (LEV_) definition
+The sub-function parameter DTCSettingType is used by the ControlDTCSetting request message to indicate
+to the server(s) whether diagnostic trouble code status bit updating shall stop or start again
+(suppressPosRspMsgIndicationBit (bit 7) not shown in Table 87).
+Table 87 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document.
+0x01 on M ON
+The server(s) shall resume the updating of diagnostic trouble code status bits
+according to normal operating conditions
+0x02 off M OFF
+The server(s) shall stop the updating of diagnostic trouble code status bits.
+0x03 – 0x3F ISOSAEReserved M ISOSAERESRVD
+This range of values is reserved by this document for future definition.
+0x40 – 0x5F vehicleManufacturerSpecific U VMS
+This range of values is reserved for vehicle manufacturer specific use.
+0x60 – 0x7E systemSupplierSpecific U SSS
+This range of values is reserved for system supplier specific use.
+0x7F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+72 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+9.9.2.3 Request message data-parameter definition
+Table 88 defines the data-parameter of the request message.
+Table 88 — Request message data-parameter definition
+Definition
+DTCSettingControlOptionRecord
+This parameter record is user optional to transmit data to a server when controlling the updating of DTC status bits (e.g.,
+it can contain a list of DTCs to be turned on or off).
+9.9.3 Positive response message
+9.9.3.1 Positive response message definition
+Table 89 defines the positive response message.
+Table 89 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 ControlDTCSetting Response SID M 0xC5 CDTCSPR
+#2 DTCSettingType M 00-7F DTCSTP
+9.9.3.2 Positive response message data-parameter definition
+Table 90 defines the data-parameter of the positive response message.
+Table 90 — Response message data-parameter definition
+Definition
+DTCSettingType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+9.9.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 91. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 91 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+Used when the server is in a critical normal mode activity and therefore cannot perform the
+requested DTC control functionality.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 73
+
+ISO 14229-1:2013(E)
+Table 91 — (continued)
+NRC Description Mnemonic
+0x31 requestOutOfRange ROOR
+The server shall use this response code, if it detects an error in the
+DTCSettingControlOptionRecord.
+9.9.5 Message flow example(s) ControlDTCSetting
+9.9.5.1 Example #1 - ControlDTCSetting (DTCSettingType = off)
+Note that this example does not use the capability of the service to transfer additional data to the server. The
+client requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the sub-
+function parameter) to "FALSE" ('0').
+Table 92 defines the ControlDTCSetting request message flow example #1.
+Table 92 — ControlDTCSetting request message flow example #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 ControlDTCSetting Request SID 0x85 RDTCS
+#2 DTCSettingType = off, suppressPosRspMsgIndicationBit = FALSE 0x02 DTCSTP_OFF
+Table 93 defines the ControlDTCSetting positive response message flow example #1.
+Table 93 — ControlDTCSetting positive response message flow example #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 ControlDTCSetting Response SID 0xC5 RDTCSPR
+#2 DTCSettingType = off 0x02 DTCSTP_OFF
+9.9.5.2 Example #2 - ControlDTCSetting ( DTCSettingType = on)
+This example does not use the capability of the service to transfer additional data to the server. The client
+requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the sub-
+function parameter) to "FALSE" ('0').
+Table 94 defines the ControlDTCSetting request message flow example #2.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+74 © ISO 2013 – All rights reserved
+
+## Tables
+---
+Definition
+securityDataResponseRecord
+This parameter contains the data as processed by the Security Sub-Layer.
+
+---
+
+NRC | Description | Mnemonic
+0x13 | incorrectMessageLengthOrInvalidFormat
+The server shall use this response code, if the length of the request A_PDU is not
+correct. | IMLOIF
+0x38 – 0x4F | reservedByExtendedDataLinkSecurityDocument
+This range of values is reserved by extended data link security. | RBEDLSD
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | ControlDTCSetting Request SID | M | 0x85 | CDTCS
+#2 | sub-function = [ DTCSettingType ] | M | 0x00 – 0xFF | LEV_DTCSTP_
+#3
+:
+#n | DTCSettingControlOptionRecord [] = [
+parameter#1
+:
+parameter#m | U
+:
+U | 0x00 – 0xFF
+:
+0x00 – 0xFF | DTCSCOR_
+PARA1
+:
+PARAm
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | ISOSAEReserved
+This value is reserved by this document. | M | ISOSAERESRVD
+0x01 | on
+The server(s) shall resume the updating of diagnostic trouble code status bits
+according to normal operating conditions | M | ON
+0x02 | off
+The server(s) shall stop the updating of diagnostic trouble code status bits. | M | OFF
+0x03 – 0x3F | ISOSAEReserved
+This range of values is reserved by this document for future definition. | M | ISOSAERESRVD
+0x40 – 0x5F | vehicleManufacturerSpecific
+This range of values is reserved for vehicle manufacturer specific use. | U | VMS
+0x60 – 0x7E | systemSupplierSpecific
+This range of values is reserved for system supplier specific use. | U | SSS
+0x7F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+Definition
+DTCSettingControlOptionRecord
+This parameter record is user optional to transmit data to a server when controlling the updating of DTC status bits (e.g.,
+it can contain a list of DTCs to be turned on or off).
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | ControlDTCSetting Response SID | M | 0xC5 | CDTCSPR
+#2 | DTCSettingType | M | 00-7F | DTCSTP
+
+---
+
+Definition
+DTCSettingType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+Used when the server is in a critical normal mode activity and therefore cannot perform the
+requested DTC control functionality. | CNC
+
+---
+
+NRC | Description | Mnemonic
+0x31 | requestOutOfRange
+The server shall use this response code, if it detects an error in the
+DTCSettingControlOptionRecord. | ROOR
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | ControlDTCSetting Request SID |  | 0x85 | RDTCS
+#2 | DTCSettingType = off, suppressPosRspMsgIndicationBit = FALSE |  | 0x02 | DTCSTP_OFF
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | ControlDTCSetting Response SID |  | 0xC5 | RDTCSPR
+#2 | DTCSettingType = off |  | 0x02 | DTCSTP_OFF

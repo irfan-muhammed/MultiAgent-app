@@ -1,0 +1,513 @@
+# Service: LinkControl (ID: 0x87)
+# Section: 9.11
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 123 — ReadDataByIdentifier positive response message example #3
+Message direction server → client
+Message Type Response
+A_Data Byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 ReadDataByIdentifier Response SID 0x62 RDBIPR
+#2 dataIdentifier [ byte#1 ] (MSB) 0x01 DID_B1
+#3 dataIdentifier [ byte#2 ] (LSB) 0x04 DID_B2
+#4 dataRecord [ data#1 ] 0xXX DREC_DATA1
+#5 dataRecord [ data#2 ] 0xXX DREC_DATA2
+#6 dataRecord [ data#3 ] 0xXX DREC_DATA3
+#7 dataRecord [ data#4 ] 0xXX DREC_DATA4
+#8 dataRecord [ data#5 ] 0xXX DREC_DATA5
+#9 dataRecord [ data#6 ] 0xXX DREC_DATA6
+#10 dataRecord [ data#7 ] 0xXX DREC_DATA7
+#11 dataRecord [ data#8 ] 0xXX DREC_DATA8
+#12 dataRecord [ data#9 ] 0xXX DREC_DATA9
+#13 dataRecord [ data#10 ] 0xXX DREC_DATA10
+#14 dataRecord [ data#11 ] data content of byte#11: 0x14 0x14 DREC_DATA11
+#15 dataRecord [ data#12 ] data content of byte#12: 0x7B 0x7B DREC_DATA12
+: : : :
+A further event occurs not before the measurement value is at least once below 90 % of the comparison
+parameter value. This behaviour is specified by the hysteresis value. If this condition was fulfilled and the
+measurement value is again higher than the comparison value a new event occurs and a new
+ReadDataByIdentifier response message is sent by the server.
+9.11 LinkControl (0x87) service
+9.11.1 Service description
+The LinkControl service is used to control the communication between the client and the server(s) in order to
+gain bus bandwidth for diagnostic purposes (e.g., programming). This service optionally applies to those data
+link layers, which provides the capability to reconfigure its communication parameter (e.g. change the
+baudrate on CAN or reconfigure a FlexRay cycle design) during a non-default diagnostic session.
+NOTE Further details on the application and usage of this service on a certain data link layer can be found in the
+individual data link layer specific diagnostic services implementation UDSonXYZ 'data link' specification.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 99
+
+ISO 14229-1:2013(E)
+This service is used to transition the data link layer into a certain state which allows utilizing higher diagnostic
+bandwidth most likely for programming purposes. To overcome functional communication constraints (e.g.,
+the baudrate has to be transitioned in multiple servers at the same time) the transition itself is split into two
+steps:
+⎯ Step #1: The client verifies if the transition can be performed and informs the server(s) about the mode
+transition mechanism to be used. Each server has to respond positively
+(suppressPosRspMsgIndicationBit = FALSE) before the client performs step #2. This step actually does
+not perform the mode transition.
+⎯ Step #2: The client actually requests the mode transition (e.g., higher baudrate). This step shall only be
+requested if step #1 has been performed successfully. In case of functional communication it is
+recommended that there shall not be any response from a server when the mode transition is performed
+(suppressPosRspMsgIndicationBit = TRUE), because one server might already have been transitioned to
+the new mode while others are still in progress.
+The linkControlType parameter in the request message in conjunction with the conditional
+linkControlModeIdentifier/linkRecord parameter provides a mechanism to transition with either a pre-defined
+mode transition parameter or a specifically defined mode transition parameter.
+NOTE This service is tied to a non-defaultSession. A session layer timer timeout will transition the server(s) back to
+its (their) normal mode of operation. The same applies in case an ECUReset service (0x11) is performed. Once a data link
+mode transition has taken place, any additional non-defaultSession request(s) shall not cause a re-transition into the
+default mode of operation (e.g., during a programming session).
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+9.11.2 Request message
+9.11.2.1 Request message definition
+Table 124 defines the request message (linkControlType = verifyModeTransitionWithFixedParameter).
+Table 124 — Request message definition (linkControlType =
+verifyModeTransitionWithFixedParameter)
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 LinkControl Request SID M 0x87 LC
+#2 sub-function = [ linkControlType] M 0x01 LEV_LCTP_
+#3 linkControlModeIdentifier M 0x00 – 0xFF LCMI_
+Table 125 defines the request message (linkControlType = verifyModeTransitionWithSpecificParameter).
+Table 125 — Request message definition (linkControlType =
+verifyModeTransitionWithSpecificParameter)
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 LinkControl Request SID M 0x87 LC
+#2 sub-function = [ linkControlType] M 0x02 LEV_LCTP_
+linkRecord[] = [ LBR_
+#3 modeParameterHighByte M 0x00 – 0xFF MPHB
+#4 modeParameterMiddleByte M 0x00 – 0xFF MPMB
+#5 modeParameterLowByte ] M 0x00 – 0xFF MPLB
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+100 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 126 defines the request message (linkControlType = transitionMode).
+Table 126 — Request message definition (linkControlType = transitionMode)
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 LinkControl Request SID M 0x87 LC
+#2 sub-function = [ linkControlType ] M 0x03 LEV_LCTP_
+9.11.2.2 Request message sub-function parameter $Level (LEV_) definition
+The sub-function parameter linkControlType is used by the LinkControl request message to describe the
+action to be performed in the server (suppressPosRspMsgIndicationBit (bit 7) not shown in table below).
+Table 127 defines the request message sub-function parameters.
+Table 127 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document.
+0x01 verifyModeTransitionWithFixedParameter U VMTWFP
+This parameter is used to verify if a transition with a pre-defined parameter,
+which is specified by the linkControlModeIdentifier data-parameter can be
+performed.
+0x02 verifyModeTransitionWithSpecificParameter U VMTWSP
+This parameter is used to verify if a transition to a specifically defined
+parameter (e.g., specific baudrate), which is specified by the linkRecord
+data-parameter can be performed.
+0x03 transitionMode U TM
+This sub-function parameter requests the server(s) to transition the data link
+into the mode which was requested in the preceding verification message.
+0x04 – 0x3F ISOSAEReserved M ISOSAERESRVD
+This range of values is reserved by this document for future definition.
+0x40 – 0x5F vehicleManufacturerSpecific U VMS
+This range of values is reserved for vehicle manufacturer specific use.
+0x60 – 0x7E systemSupplierSpecific U SSS
+This range of values is reserved for system supplier specific use.
+0x7F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 101
+
+ISO 14229-1:2013(E)
+9.11.2.3 Request message data-parameter definition
+Table 128 defines the data-parameters of the request message.
+Table 128 — Request message data-parameter definition
+Definition
+linkControlModeIdentifier
+This conditional parameter references a fixed defined mode parameter to transition to (see B.3).
+linkRecord
+This conditional parameter record contains a specific mode parameter in case the sub-function parameter indicates that
+a specific parameter is used. The format of the linkRecord is specified in the individual data links specific diagnostic
+specification (UDSonXYZ).
+9.11.3 Positive response message
+9.11.3.1 Positive response message definition
+Table 129 defines the positive response message.
+Table 129 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 LinkControl Response SID M 0xC7 LCPR
+#2 linkControlType M 00-7F LCTP
+9.11.3.2 Positive response message data-parameter definition
+Table 130 defines the data-parameter of the positive response message.
+Table 130 — Response message data-parameter definition
+Definition
+linkControlType
+This parameter is an echo of bits 6 - 0 of the linkControlType sub-function parameter from the request message.
+9.11.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 131. The listed negative responses shall be used if
+the error scenario applies to the server.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+102 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 131 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+This NRC shall be returned if the criteria for the requested LinkControl are not met.
+0x24 requestSequenceError RSE
+This NRC shall be returned if the client requests the transition of the mode of operation
+without a preceding verification step, which specifies the mode to transition to.
+0x31 requestOutOfRange ROOR
+This NRC shall be returned if
+the requested linkControlModeIdentifier is invalid;
+the specific modeParameter (linkRecord) is invalid;
+9.11.5 Message flow example(s) LinkControl
+9.11.5.1 Example #1 - Transition baudrate to fixed baudrate (PC baudrate 115200 kBit/s)
+9.11.5.1.1 Step#1: Verify if all criteria are met for a baudrate switch
+Table 132 defines the LinkControl request message flow example #1 - step #1.
+Table 132 — LinkControl request message flow example #1 - step #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Request SID 0x87 LC
+#2 linkControlType = verifyModeTransitionWithFixedParameter, 0x01 VMTWFP
+suppressPosRspMsgIndicationBit = FALSE
+#3 linkControlModeIdentifier = PC115200Baud 0x05 BI_PC115200
+Table 133 defines the LinkControl positive response message flow example #1 - step #1.
+Table 133 — LinkControl positive response message flow example #1 - step #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Response SID 0xC7 LCPR
+#2 linkControlType = verifyModeTransitionWithFixedParameter 0x01 VMTWFP
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 103
+
+ISO 14229-1:2013(E)
+9.11.5.1.2 Step#2: Transition the baudrate
+Table 134 defines the LinkControl request message flow example #1 - step #2.
+Table 134 — LinkControl request message flow example #1 - step #2
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Request SID 0x87 LC
+#2 linkControlType = transitionMode, 0x83 TM
+suppressPosRspMsgIndicationBit = TRUE
+There is no response from the server(s). The client and the server(s) have to transition the baudrate of their
+communication link.
+9.11.5.2 Example #2 - Transition baudrate to specific baudrate (150kBit/s)
+9.11.5.2.1 Step#1: Verify if all criteria are met for a baudrate switch
+Table 135 defines the LinkControl request message flow example #2 - step #1.
+Table 135 — LinkControl request message flow example #2 - step #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Request SID 0x87 LC
+#2 linkControlType = verifyModeTransitionWithSpecificParameter, 0x02 VMTWSP
+suppressPosRspMsgIndicationBit = FALSE
+#3 linkRecord [ modeParameterHighByte ] (150kBit/s) 0x02 MPHB
+#4 linkRecord [modeParameterMiddleByte ] 0x49 MPMB
+#5 linkRecord [modeParameterLowByte ] 0xF0 MPLB
+Table 136 defines the LinkControl positive response message flow example #2 - step #1.
+Table 136 — LinkControl positive response message flow example #2 - step #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Response SID 0xC7 LCPR
+#2 linkControlType = verifyModeTransitionWithSpecificParameter 0x02 VMTWSP
+9.11.5.2.2 Step#2: Transition the baudrate
+Table 137 defines the LinkControl request message flow example #2 - step #2.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+104 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 137 — LinkControl request message flow example #2 - step #2
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Request SID 0x87 LC
+#2 linkControlType = transitionMode, 0x83 TM
+suppressPosRspMsgIndicationBit = TRUE
+There is no response from the server(s). The client and the server(s) have to transition the baudrate of their
+communication link.
+9.11.5.3 Example #3 - Transition FlexRay cycle design to 'Programming'
+The following example reflects a scenario, where a FlexRay network cycle design is transitioned into an
+optimized 'programming' mode (e.g., utilizing an enhanced dynamic segment for programming).
+9.11.5.3.1 Step#1: Verify if all criteria are met for a scheduler switch
+Table 138 defines the LinkControl request message flow example #3 - step #1.
+Table 138 — LinkControl request message flow example #3 - step #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Request SID 0x87 LC
+#2 linkControlType = verifyModeTransitionWithFixedParameter, 0x01 VMTWFP
+suppressPosRspMsgIndicationBit = FALSE
+#3 linkControlModeIdentifier = ProgrammingSetup 0x20 PROGSU
+Table 139 defines the LinkControl positive response message flow example #3 - step #1.
+Table 139 — LinkControl positive response message flow example #3 - step #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 LinkControl Response SID 0xC7 LCPR
+#2 linkControlType = verifyModeTransitionWithFixedParameter 0x01 VMTWFP
+9.11.5.3.2 Step#2: Transition to programming scheduler
+Table 140 defines the LinkControl request message flow example #3 - step #2.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 105
+
+## Tables
+---
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data Byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | ReadDataByIdentifier Response SID |  | 0x62 | RDBIPR
+#2
+#3 | dataIdentifier [ byte#1 ] (MSB)
+dataIdentifier [ byte#2 ] (LSB) |  | 0x01
+0x04 | DID_B1
+DID_B2
+#4
+#5
+#6
+#7
+#8
+#9
+#10
+#11
+#12
+#13
+#14
+#15
+: | dataRecord [ data#1 ]
+dataRecord [ data#2 ]
+dataRecord [ data#3 ]
+dataRecord [ data#4 ]
+dataRecord [ data#5 ]
+dataRecord [ data#6 ]
+dataRecord [ data#7 ]
+dataRecord [ data#8 ]
+dataRecord [ data#9 ]
+dataRecord [ data#10 ]
+dataRecord [ data#11 ] data content of byte#11: 0x14
+dataRecord [ data#12 ] data content of byte#12: 0x7B
+: |  | 0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0xXX
+0x14
+0x7B
+: | DREC_DATA1
+DREC_DATA2
+DREC_DATA3
+DREC_DATA4
+DREC_DATA5
+DREC_DATA6
+DREC_DATA7
+DREC_DATA8
+DREC_DATA9
+DREC_DATA10
+DREC_DATA11
+DREC_DATA12
+:
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | LinkControl Request SID | M | 0x87 | LC
+#2 | sub-function = [ linkControlType] | M | 0x01 | LEV_LCTP_
+#3 | linkControlModeIdentifier | M | 0x00 – 0xFF | LCMI_
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | LinkControl Request SID | M | 0x87 | LC
+#2 | sub-function = [ linkControlType] | M | 0x02 | LEV_LCTP_
+#3
+#4
+#5 | linkRecord[] = [
+modeParameterHighByte
+modeParameterMiddleByte
+modeParameterLowByte ] | M
+M
+M | 0x00 – 0xFF
+0x00 – 0xFF
+0x00 – 0xFF | LBR_
+MPHB
+MPMB
+MPLB
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | LinkControl Request SID | M | 0x87 | LC
+#2 | sub-function = [ linkControlType ] | M | 0x03 | LEV_LCTP_
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | ISOSAEReserved
+This value is reserved by this document. | M | ISOSAERESRVD
+0x01 | verifyModeTransitionWithFixedParameter
+This parameter is used to verify if a transition with a pre-defined parameter,
+which is specified by the linkControlModeIdentifier data-parameter can be
+performed. | U | VMTWFP
+0x02 | verifyModeTransitionWithSpecificParameter
+This parameter is used to verify if a transition to a specifically defined
+parameter (e.g., specific baudrate), which is specified by the linkRecord
+data-parameter can be performed. | U | VMTWSP
+0x03 | transitionMode
+This sub-function parameter requests the server(s) to transition the data link
+into the mode which was requested in the preceding verification message. | U | TM
+0x04 – 0x3F | ISOSAEReserved
+This range of values is reserved by this document for future definition. | M | ISOSAERESRVD
+0x40 – 0x5F | vehicleManufacturerSpecific
+This range of values is reserved for vehicle manufacturer specific use. | U | VMS
+0x60 – 0x7E | systemSupplierSpecific
+This range of values is reserved for system supplier specific use. | U | SSS
+0x7F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+Definition
+linkControlModeIdentifier
+This conditional parameter references a fixed defined mode parameter to transition to (see B.3).
+linkRecord
+This conditional parameter record contains a specific mode parameter in case the sub-function parameter indicates that
+a specific parameter is used. The format of the linkRecord is specified in the individual data links specific diagnostic
+specification (UDSonXYZ).
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | LinkControl Response SID | M | 0xC7 | LCPR
+#2 | linkControlType | M | 00-7F | LCTP
+
+---
+
+Definition
+linkControlType
+This parameter is an echo of bits 6 - 0 of the linkControlType sub-function parameter from the request message.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+This NRC shall be returned if the criteria for the requested LinkControl are not met. | CNC
+0x24 | requestSequenceError
+This NRC shall be returned if the client requests the transition of the mode of operation
+without a preceding verification step, which specifies the mode to transition to. | RSE
+0x31 | requestOutOfRange
+This NRC shall be returned if
+the requested linkControlModeIdentifier is invalid;
+the specific modeParameter (linkRecord) is invalid; | ROOR
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Request SID |  | 0x87 | LC
+#2 | linkControlType = verifyModeTransitionWithFixedParameter,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x01 | VMTWFP
+#3 | linkControlModeIdentifier = PC115200Baud |  | 0x05 | BI_PC115200
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Response SID |  | 0xC7 | LCPR
+#2 | linkControlType = verifyModeTransitionWithFixedParameter |  | 0x01 | VMTWFP
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Request SID |  | 0x87 | LC
+#2 | linkControlType = transitionMode,
+suppressPosRspMsgIndicationBit = TRUE |  | 0x83 | TM
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Request SID |  | 0x87 | LC
+#2 | linkControlType = verifyModeTransitionWithSpecificParameter,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x02 | VMTWSP
+#3
+#4
+#5 | linkRecord [ modeParameterHighByte ] (150kBit/s)
+linkRecord [modeParameterMiddleByte ]
+linkRecord [modeParameterLowByte ] |  | 0x02
+0x49
+0xF0 | MPHB
+MPMB
+MPLB
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Response SID |  | 0xC7 | LCPR
+#2 | linkControlType = verifyModeTransitionWithSpecificParameter |  | 0x02 | VMTWSP
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Request SID |  | 0x87 | LC
+#2 | linkControlType = transitionMode,
+suppressPosRspMsgIndicationBit = TRUE |  | 0x83 | TM
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Request SID |  | 0x87 | LC
+#2 | linkControlType = verifyModeTransitionWithFixedParameter,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x01 | VMTWFP
+#3 | linkControlModeIdentifier = ProgrammingSetup |  | 0x20 | PROGSU
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | LinkControl Response SID |  | 0xC7 | LCPR
+#2 | linkControlType = verifyModeTransitionWithFixedParameter |  | 0x01 | VMTWFP

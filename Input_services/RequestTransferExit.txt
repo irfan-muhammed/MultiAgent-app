@@ -1,0 +1,714 @@
+# Service: RequestTransferExit (ID: 0x37)
+# Section: 14.5
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+14.5 RequestTransferExit (0x37) service
+14.5.1 Service description
+This service is used by the client to terminate a data transfer between client and server (upload or download).
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+14.5.2 Request message
+14.5.2.1 Request message definition
+Table 408 defines the request message.
+Table 408 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 RequestTransferExit Request SID M 0x37 RTE
+transferRequestParameterRecord[] = [ TRPR_
+#2 transferRequestParameter#1 U 0x00 – 0xFF TRTP_
+: : : : :
+#n transferRequestParameter#m ] U 0x00 – 0xFF TRTP_
+14.5.2.2 Request message sub-function parameter $Level (LEV_) definition
+This service does not use a sub-function parameter.
+14.5.2.3 Request message data-parameter definition
+Table 409 defines the data-parameters of the request message.
+Table 409 — Request message data-parameter definition
+Definition
+transferRequestParameterRecord
+This parameter record contains parameter(s), which are required by the server to support the transfer of data. Format
+and length of this parameter(s) are vehicle manufacturer specific.
+14.5.3 Positive response message
+14.5.3.1 Positive response message definition
+Table 410 defines the positive response message.
+Table 410 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 RequestTransferExit Response SID M 0x77 RTEPR
+transferResponseParameterRecord[] = [ TREPR_
+#2 transferResponseParameter#1 U 0x00 – 0xFF TREP_
+: : : : :
+#n transferResponseParameter#m ] U 0x00 – 0xFF TREP
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 285
+
+ISO 14229-1:2013(E)
+14.5.3.2 Positive response message data-parameter definition
+Table 411 defines the data-parameters of the positive response message.
+Table 411 — Response message data-parameter definition
+Definition
+transferResponseParameterRecord
+This parameter shall contain parameter(s) which are required by the client to support the transfer of data. Format and
+length of this parameter(s) are vehicle manufacturer specific.
+14.5.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each negative response code would occur are documented in Table 412. The listed negative responses shall
+be used if the error scenario applies to the server.
+Table 412 — Supported negative response codes
+NRC Description Mnemonic
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be returned if the length of the message is wrong.
+0x24 requestSequenceError RSE
+This NRC shall be returned if:
+⎯ The programming process is not completed when a request for this service is received;
+⎯ The RequestDownload or RequestUpload service is not active;
+0x31 requestOutOfRange ROOR
+This NRC shall be returned if the transferRequestParameterRecord contains invalid data.
+0x72 generalProgrammingFailure GPF
+This NRC shall be returned if the server detects an error when finalizing the data transfer
+between the client and server (e.g., via an integrity check).
+The evaluation sequence is documented in Figure 29.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+286 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+mandatory optional manufacturer/supplier
+specific
+Service with SID 0x37
+YES
+Sequence is
+NO NRC 0x24 transferRequest-
+respected for SID
+ParameterRecord is valid
+YES
+NO NRC 0x31
+YES
+Total length check NO NRC 0x13
+Manufacturer/
+supplier specific
+YES check
+NO NRC 0xXX
+YES
+positive response
+Figure 29 — NRC handling for RequestTransferExit service
+14.5.5 Message flow example(s) for downloading/uploading data
+14.5.5.1 Download data to a server
+14.5.5.1.1 Assumptions
+This subclause specifies the conditions to transfer data (download) from the client to the server.
+The example consists of three steps.
+In the 1st step the client and the server execute a RequestDownload service. With this service the following
+information is exchanged as parameters in the request and positive response message between client and the
+server.
+Table 413 defines the transferRequestParameter values.
+Table 413 — Definition of transferRequestParameter values
+Data Parameter
+Data Parameter Name Data Parameter Description
+Value(s)
+memoryAddress (3 bytes) 0x602000 memoryAddress (start) to download data to
+dataFormatIdentifier 0x11 dataFormatIdentifier:
+⎯ compressionMethod = 0x1X
+⎯ encryptingMethod = 0xX1
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 287
+
+ISO 14229-1:2013(E)
+Table 413 — (continued)
+Data Parameter
+Data Parameter Name Data Parameter Description
+Value(s)
+MemorySize (3 bytes) 0x00FFFF MemorySize = (65 535 bytes)
+This parameter value shall be used by the server to compare
+to the actual number of bytes transferred during the execution
+of the requestTransferExit service.
+Table 414 defines the transferResponseParameter value.
+Table 414 — Definition of transferResponseParameter value
+Data Parameter
+Data Parameter Name Data Parameter Description
+Value(s)
+maximumNumberOfBlockLength 0x0081 maximumNumberOfBlockLength:
+(serviceId + BlockSequenceCounter (1 byte) + 127 server data
+bytes = 129 data bytes)
+In the 2nd step the client transfers 65 535 Bytes of data to the flash memory starting at memoryaddress
+0x602000 to the server.
+In the 3rd step the client terminates the data transfer to the server with a requestTransferExit service.
+Test conditions: ignition = on, engine = off, vehicle speed = 0 [kph]
+It is assumed, that for this example the server supports a three byte memoryAddress and a three byte
+MemorySize. If the MemorySize contains the uncompressed size, the number of TransferData services with
+127 data bytes can not be calculated because the compression method and its compression ratio is not
+standardized. If the MemorySize contains the compressed size, the total number of TransferData services
+with 127 data bytes would be 516, followed by a single TransferData request with three bytes. Therefore, it is
+assumed that the last TransferData request message contains a blockSequenceCounter equal to 0x05.
+14.5.5.1.2 Step #1: Request for download
+Table 415 defines the RequestDownload request message flow example.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+288 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 415 — RequestDownload request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestDownload Request SID 0x34 RD
+#2 dataFormatIdentifier 0x11 DFI
+#3 addressAndLengthFormatIdentifier 0x33 ALFID
+#4 memoryAddress [ byte#1 ] (MSB) 0x60 MA_B1
+#5 memoryAddress [ byte#2 ] 0x20 MA_B2
+#6 memoryAddress [ byte#3 ] (LSB) 0x00 MA_B3
+#7 MemorySize [ byte#1 ] (MSB) 0x00 UCMS_B1
+#8 MemorySize [ byte#2 ] 0xFF UCMS_B2
+#9 MemorySize [ byte#3 ] (LSB) 0xFF UCMS_B3
+Table 416 — RequestDownload positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestDownload Response SID 0x74 RDPR
+#2 LengthFormatIdentifier 0x20 LFID
+#3 maxNumberOfBlockLength [ byte#1 ] (MSB) 0x00 MNROB_B1
+#4 maxNumberOfBlockLength [ byte#2 ] (LSB) 0x81 MNROB_B1
+14.5.5.1.3 Step #2: Transfer data
+Table 417 — TransferData request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Request SID 0x36 TD
+#2 blockSequenceCounter 0x01 BSC
+transferRequestParameterRecord [ transferRequestParameter#1 ] =
+#3 dataByte#3 0xXX TRTP_1
+: : : :
+#129 transferRequestParameterRecord [ transferRequestParameter#127 ] = 0xXX TRTP_127
+dataByte#129
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 289
+
+ISO 14229-1:2013(E)
+Table 418 — TransferData positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Response SID 0x76 TDPR
+#2 blockSequenceCounter 0x01 BSC
+:
+Table 419 — TransferData request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Request SID 0x36 TD
+#2 blockSequenceCounter 0x05 BSC
+transferRequestParameterRecord [ transferRequestParameter#1 ] =
+#3 dataByte#3 0xXX TRTP_1
+: : : :
+#n+2 transferRequestParameterRecord [ transferRequestParameter#n-2 ] = 0xXX TRTP_n-2
+dataByte#n
+Table 420 — TransferData positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Response SID 0x76 TDPR
+#2 blockSequenceCounter 0x05 BSC
+14.5.5.1.4 Step #3: Request Transfer exit
+Table 421 — RequestTransferExit request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestTransferExit Request SID 0x37 RTE
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+290 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 422 — RequestTransferExit positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestTransferExit Response SID 0x77 RTEPR
+14.5.5.2 Upload data from a server
+This subclause specifies the conditions to transfer data (upload) from a server to the client.
+The example consists of three steps.
+In the 1st step the client and the server execute a requestUpload service. With this service the following
+information is exchanged as parameters in the request and positive response message between client and the
+server:
+Table 423 — Definition of transferRequestParameter values
+Data parameter name Data value(s) Data parameter description
+memoryAddress (3 bytes) 0x201000 memoryAddress (start) to upload data from
+dataFormatIdentifier 0x11 dataFormatIdentifier
+⎯ compressionMethod = 0x1X
+⎯ encryptingMethod = 0xX1
+MemorySize (3 bytes) 0x0001FF MemorySize = (511 bytes)
+This parameter value shall indicate how many data bytes shall be
+transferred and shall be used by the server to compare to the actual
+number of bytes transferred during execution of the
+requestTransferExit service.
+Table 424 — Definition of transferResponseParameter value
+Data parameter name Data value(s) Data parameter description
+maximumNumberOfBlockLength 0x0081 maximumNumberOfBlockLength:
+(serviceId + BlockSequenceCounter (1 byte) + 127 server data bytes
+= 129 data bytes)
+In the 2nd step the server transfers 511 data bytes (4 transferData services with 129 (127 server data
+bytes + 1 ServiceId data byte + 1 blockSequenceCounter byte) data bytes and 1 transferData service with 5 (3
+server data bytes + 1 serviceId data byte + 1 blockSequenceCounter byte) data bytes from the external RAM
+starting at memoryaddress 0x201000 in the server.
+In the 3rd step the client terminates the data transfer to the server with a requestTransferExit service.
+Test conditions: ignition = on, engine = off, vehicle speed = 0 [kph]
+It is assumed, that for this example the server supports a three byte memoryAddress and a three byte
+MemorySize. Furthermore it is assumed that the server supports a blockSequenceCounter in the
+TransferData (0x36) service.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 291
+
+ISO 14229-1:2013(E)
+14.5.5.2.1 Step #1: Request for upload
+Table 425 — RequestUpload request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestUpload Request SID 0x35 RU
+#2 dataFormatIdentifier 0x11 DFI
+#3 addressAndLengthFormatIdentifier 0x33 ALFID
+#4 memoryAddress [ byte#1 ] (MSB) 0x20 MA_B1
+#5 memoryAddress [ byte#2 ] 0x10 MA_B2
+#6 memoryAddress [ byte#3 ] (LSB) 0x00 MA_B3
+#7 MemorySize [ byte#1 ] (MSB) 0x00 UCMS_B1
+#8 MemorySize [ byte#2 ] 0x01 UCMS_B2
+#9 MemorySize [ byte#3 ] (LSB) 0xFF UCMS_B3
+Table 426 — RequestUpload positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestUpload Response SID 0x75 RUPR
+#2 lengthFormatIdentifier 0x20 LFID
+#3 maxNumberOfBlockLength [ byte#1 ] (MSB) 0x00 MNROB_B1
+#4 maxNumberOfBlockLength [ byte#2 ] (LSB) 0x81 MNROB_B1
+14.5.5.2.2 Step #2: Transfer data
+Table 427 — TransferData request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Request SID 0x36 TD
+#2 blockSequenceCounter 0x01 BSC
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+292 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 428 — TransferData positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Response SID 0x76 TDPR
+#2 blockSequenceCounter 0x01 BSC
+transferResponseParameterRecord [ transferResponseParameter#1 ] xx TREP_1
+#3 = dataByte3
+: : : :
+#129 transferResponseParameterRecord [ transferResponseParameter#127 xx TREP_127
+] = dataByte129
+:
+Table 429 — TransferData request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Request SID 0x36 TD
+#2 blockSequenceCounter 0x05 BSC
+Table 430 — TransferData positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 TransferData Response SID 0x76 TDPR
+#2 blockSequenceCounter 0x05 BSC
+transferResponseParameterRecord [ transferResponseParameter#1 ] =
+#3 dataByte3 0xXX TREP_1
+: : : :
+#5 transferResponseParameterRecord [ transferResponseParameter#3 ] = 0xXX TREP_3
+dataByte5
+14.5.5.2.3 Step #3: Request Transfer exit
+Table 431 — RequestTransferExit request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestTransferExit Request SID 0x37 RTE
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 293
+
+ISO 14229-1:2013(E)
+Table 432 — RequestTransferExit positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 RequestTransferExit Response SID 0x77 RTEPR
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+294 © ISO 2013 – All rights reserved
+
+## Tables
+---
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | RequestTransferExit Request SID | M | 0x37 | RTE
+#2
+:
+#n | transferRequestParameterRecord[] = [
+transferRequestParameter#1
+:
+transferRequestParameter#m ] | U
+:
+U | 0x00 – 0xFF
+:
+0x00 – 0xFF | TRPR_
+TRTP_
+:
+TRTP_
+
+---
+
+Definition
+transferRequestParameterRecord
+This parameter record contains parameter(s), which are required by the server to support the transfer of data. Format
+and length of this parameter(s) are vehicle manufacturer specific.
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | RequestTransferExit Response SID | M | 0x77 | RTEPR
+#2
+:
+#n | transferResponseParameterRecord[] = [
+transferResponseParameter#1
+:
+transferResponseParameter#m ] | U
+:
+U | 0x00 – 0xFF
+:
+0x00 – 0xFF | TREPR_
+TREP_
+:
+TREP
+
+---
+
+Definition
+transferResponseParameterRecord
+This parameter shall contain parameter(s) which are required by the client to support the transfer of data. Format and
+length of this parameter(s) are vehicle manufacturer specific.
+
+---
+
+NRC | Description | Mnemonic
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be returned if the length of the message is wrong. | IMLOIF
+0x24 | requestSequenceError
+This NRC shall be returned if:
+⎯ The programming process is not completed when a request for this service is received;
+⎯ The RequestDownload or RequestUpload service is not active; | RSE
+0x31 | requestOutOfRange
+This NRC shall be returned if the transferRequestParameterRecord contains invalid data. | ROOR
+0x72 | generalProgrammingFailure
+This NRC shall be returned if the server detects an error when finalizing the data transfer
+between the client and server (e.g., via an integrity check). | GPF
+
+---
+
+Y | ES
+
+---
+
+Y | ES
+
+---
+
+NO
+
+
+---
+
+YES
+
+
+---
+
+Y | ES
+
+---
+
+
+NO
+
+---
+
+
+YES
+
+---
+
+Data Parameter Name | Data Parameter
+Value(s) | Data Parameter Description
+memoryAddress (3 bytes) | 0x602000 | memoryAddress (start) to download data to
+dataFormatIdentifier | 0x11 | dataFormatIdentifier:
+⎯ compressionMethod = 0x1X
+⎯ encryptingMethod = 0xX1
+
+---
+
+Data Parameter Name | Data Parameter
+Value(s) | Data Parameter Description
+MemorySize (3 bytes) | 0x00FFFF | MemorySize = (65 535 bytes)
+This parameter value shall be used by the server to compare
+to the actual number of bytes transferred during the execution
+of the requestTransferExit service.
+
+---
+
+Data Parameter Name | Data Parameter
+Value(s) | Data Parameter Description
+maximumNumberOfBlockLength | 0x0081 | maximumNumberOfBlockLength:
+(serviceId + BlockSequenceCounter (1 byte) + 127 server data
+bytes = 129 data bytes)
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestDownload Request SID |  | 0x34 | RD
+#2 | dataFormatIdentifier |  | 0x11 | DFI
+#3 | addressAndLengthFormatIdentifier |  | 0x33 | ALFID
+#4
+#5
+#6 | memoryAddress [ byte#1 ] (MSB)
+memoryAddress [ byte#2 ]
+memoryAddress [ byte#3 ] (LSB) |  | 0x60
+0x20
+0x00 | MA_B1
+MA_B2
+MA_B3
+#7
+#8
+#9 | MemorySize [ byte#1 ] (MSB)
+MemorySize [ byte#2 ]
+MemorySize [ byte#3 ] (LSB) |  | 0x00
+0xFF
+0xFF | UCMS_B1
+UCMS_B2
+UCMS_B3
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestDownload Response SID |  | 0x74 | RDPR
+#2 | LengthFormatIdentifier |  | 0x20 | LFID
+#3
+#4 | maxNumberOfBlockLength [ byte#1 ] (MSB)
+maxNumberOfBlockLength [ byte#2 ] (LSB) |  | 0x00
+0x81 | MNROB_B1
+MNROB_B1
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Request SID |  | 0x36 | TD
+#2 | blockSequenceCounter |  | 0x01 | BSC
+#3
+:
+#129 | transferRequestParameterRecord [ transferRequestParameter#1 ] =
+dataByte#3
+:
+transferRequestParameterRecord [ transferRequestParameter#127 ] =
+dataByte#129 |  | 0xXX
+:
+0xXX | TRTP_1
+:
+TRTP_127
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Response SID |  | 0x76 | TDPR
+#2 | blockSequenceCounter |  | 0x01 | BSC
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Request SID |  | 0x36 | TD
+#2 | blockSequenceCounter |  | 0x05 | BSC
+#3
+:
+#n+2 | transferRequestParameterRecord [ transferRequestParameter#1 ] =
+dataByte#3
+:
+transferRequestParameterRecord [ transferRequestParameter#n-2 ] =
+dataByte#n |  | 0xXX
+:
+0xXX | TRTP_1
+:
+TRTP_n-2
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Response SID |  | 0x76 | TDPR
+#2 | blockSequenceCounter |  | 0x05 | BSC
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestTransferExit Request SID |  | 0x37 | RTE
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestTransferExit Response SID |  | 0x77 | RTEPR
+
+---
+
+Data parameter name | Data value(s) | Data parameter description
+memoryAddress (3 bytes) | 0x201000 | memoryAddress (start) to upload data from
+dataFormatIdentifier | 0x11 | dataFormatIdentifier
+⎯ compressionMethod = 0x1X
+⎯ encryptingMethod = 0xX1
+MemorySize (3 bytes) | 0x0001FF | MemorySize = (511 bytes)
+This parameter value shall indicate how many data bytes shall be
+transferred and shall be used by the server to compare to the actual
+number of bytes transferred during execution of the
+requestTransferExit service.
+
+---
+
+Data parameter name | Data value(s) | Data parameter description
+maximumNumberOfBlockLength | 0x0081 | maximumNumberOfBlockLength:
+(serviceId + BlockSequenceCounter (1 byte) + 127 server data bytes
+= 129 data bytes)
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestUpload Request SID |  | 0x35 | RU
+#2 | dataFormatIdentifier |  | 0x11 | DFI
+#3 | addressAndLengthFormatIdentifier |  | 0x33 | ALFID
+#4
+#5
+#6 | memoryAddress [ byte#1 ] (MSB)
+memoryAddress [ byte#2 ]
+memoryAddress [ byte#3 ] (LSB) |  | 0x20
+0x10
+0x00 | MA_B1
+MA_B2
+MA_B3
+#7
+#8
+#9 | MemorySize [ byte#1 ] (MSB)
+MemorySize [ byte#2 ]
+MemorySize [ byte#3 ] (LSB) |  | 0x00
+0x01
+0xFF | UCMS_B1
+UCMS_B2
+UCMS_B3
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestUpload Response SID |  | 0x75 | RUPR
+#2 | lengthFormatIdentifier |  | 0x20 | LFID
+#3
+#4 | maxNumberOfBlockLength [ byte#1 ] (MSB)
+maxNumberOfBlockLength [ byte#2 ] (LSB) |  | 0x00
+0x81 | MNROB_B1
+MNROB_B1
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Request SID |  | 0x36 | TD
+#2 | blockSequenceCounter |  | 0x01 | BSC
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Response SID |  | 0x76 | TDPR
+#2 | blockSequenceCounter |  | 0x01 | BSC
+#3
+:
+#129 | transferResponseParameterRecord [ transferResponseParameter#1 ]
+= dataByte3
+:
+transferResponseParameterRecord [ transferResponseParameter#127
+] = dataByte129 |  | xx
+:
+xx | TREP_1
+:
+TREP_127
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Request SID |  | 0x36 | TD
+#2 | blockSequenceCounter |  | 0x05 | BSC
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | TransferData Response SID |  | 0x76 | TDPR
+#2 | blockSequenceCounter |  | 0x05 | BSC
+#3
+:
+#5 | transferResponseParameterRecord [ transferResponseParameter#1 ] =
+dataByte3
+:
+transferResponseParameterRecord [ transferResponseParameter#3 ] =
+dataByte5 |  | 0xXX
+:
+0xXX | TREP_1
+:
+TREP_3
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestTransferExit Request SID |  | 0x37 | RTE
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | RequestTransferExit Response SID |  | 0x77 | RTEPR

@@ -1,0 +1,577 @@
+# Service: DiagnosticSessionControl (ID: 0x10)
+# Section: 9.2
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 22 — Diagnostic and Communication Management functional unit
+Service Description
+DiagnosticSessionControl The client requests to control a diagnostic session with a server(s).
+ECUReset The client forces the server(s) to perform a reset.
+SecurityAccess The client requests to unlock a secured server(s).
+CommunicationControl The client controls the setting of communication parameters in the server (e.g.,
+communication baudrate).
+TesterPresent The client indicates to the server(s) that it is still present.
+AccessTimingParameter The client uses this service to read/modify the timing parameters for an active
+communication.
+SecuredDataTransmission The client uses this service to perform data transmission with an extended data link
+security.
+ControlDTCSetting The client controls the setting of DTCs in the server.
+ResponseOnEvent The client requests to setup and/or control an event mechanism in the server.
+LinkControl The client requests control of the communication baudrate.
+9.2 DiagnosticSessionControl (0x10) service
+9.2.1 Service description
+The DiagnosticSessionControl service is used to enable different diagnostic sessions in the server(s).
+A diagnostic session enables a specific set of diagnostic services and/or functionality in the server(s). This
+service provides the capability that the server(s) can report data link layer specific parameter values valid for
+the enabled diagnostic session (e.g. timing parameter values). The user of this International Standard shall
+define the exact set of services and/or functionality enabled in each diagnostic session.
+There shall always be exactly one diagnostic session active in a server. A server shall always start the default
+diagnostic session when powered up. If no other diagnostic session is started, then the default diagnostic
+session shall be running as long as the server is powered.
+A server shall be capable of providing diagnostic functionality under normal operating conditions and in other
+operation conditions defined by the vehicle manufacturer (e.g., limp home operation condition).
+If the client has requested a diagnostic session, which is already running, then the server shall send a positive
+response message and behave as shown in Figure 7 that describes the server internal behaviour when
+transitioning between sessions.
+Whenever the client requests a new diagnostic session, the server shall send the DiagnosticSessionControl
+positive response message before the timings of the new session become active in the server. Some
+situations may require that the new session must be entered before the positive response is sent while
+maintaining the old protocol timings for sending the response. If the server is not able to start the requested
+new diagnostic session, then it shall respond with a DiagnosticSessionControl negative response message
+and the current session shall continue (see diagnosticSession parameter definitions for further information on
+how the server and client shall behave). The set of diagnostic services and diagnostic functionality in a non-
+default diagnostic session (excluding the programmingSession) is a superset of the functionality provided in
+the defaultSession, which means that the diagnostic functionality of the defaultSession is also available when
+switching to any non-default diagnostic session. A session can enable vehicle manufacturer specific services
+and functions, which are not part of this document.
+To start a new diagnostic session a server may request that certain conditions be fulfilled. All such conditions
+are user defined. Examples of such conditions are:
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+36 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+⎯ The server may only allow a client with a certain client identifier (client diagnostic address) to start a
+specific new diagnostic session (e.g. a server may require that only a client having the client identifier
+0xF4 may start the extendedDiagnosticSession).
+⎯ Certain safety conditions may need to be satisfied (e.g., vehicle shall not be moving or engine shall not be
+running).
+In some systems it is desirable to change communication-timing parameters when a new diagnostic session is
+started. The DiagnosticSessionControl service entity can use the appropriate service primitives to change the
+timing parameters as specified for the underlying layers to change communication timing in the local node and
+potentially in the nodes the client wants to communicate with.
+Figure 7 provides an overview about the diagnostic session transition and what the server shall do when it
+transitions to another session.
+2
+1 3
+any
+default
+other
+session
+session
+4
+Key
+1 default session: When the server is in the defaultSession and the client requests to start the defaultSession then the
+server shall re-initialize the defaultSession completely. The server shall reset all activated/initiated/changed
+settings/controls during the activated session. This does not include long term changes programmed into non-volatile
+memory.
+2 other session: When the server transitions from the defaultSession to any other session than the defaultSession then
+the server shall only stop the events (similar to stopResponseOnEvent) that have been configured in the server via
+the ResponseOnEvent (0x86) service during the defaultSession.
+3 same or other session: When the server transitions from any diagnostic session other than the defaultSession to
+another session other than the defaultSession (including the currently active diagnostic session) then the server shall
+(re-) initialize the diagnostic session, which means that:
+i) Each event that has been configured in the server via the ResponseOnEvent (0x86) service shall be stopped.
+ii) Security shall be relocked. Note that the locking of security access shall reset any active diagnostic functionality that
+was dependent on security access to be unlocked (e.g., active inputOutputControl of a DID).
+iii) All other active diagnostic functionality that is supported in the new session and is not dependent upon security
+access shall be maintained. For example, any configured periodic scheduler shall remain active when transitioning
+from one non-defaultSession to another or the same non-DefaultSession and the states of the CommunicationControl
+and ControlDTCSetting services shall not be affected, which means that normal communication shall remain disabled
+when it is disabled at the point in time the session is switched.
+4 default session: When the server transitions from any diagnostic session other than the default session to the
+defaultSession then the server shall stop each event that has been configured in the server via the
+ResponseOnEvent (0x86) service and security shall be enabled. Any other active diagnostic functionality that is not
+supported in the defaultSession shall be terminated. For example, any configured periodic scheduler or output control
+shall be disabled and the states of the CommunicationControl and ControlDTCSetting services shall be reset, which
+means that normal communication shall be re-enabled when it was disabled at the point in time the session is
+switched to the defaultSession. The server shall reset all activated/initiated/changed settings/controls during the
+activated session. This does not include long term changes programmed into non-volatile memory.
+Figure 7 — Server diagnostic session state diagram
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 37
+
+ISO 14229-1:2013(E)
+Table 23 defines the services, which are allowed during the defaultSession and the non-defaultSession (timed
+services). Any non-defaultSession is tied to a diagnostic session timer that has to be kept active by the client.
+Table 23 — Services allowed during default and non-default diagnostic session
+Service defaultSession non-defaultSession
+DiagnosticSessionControl – 0x10 x x
+ECUReset – 0x11 x x
+SecurityAccess – 0x27 not applicable x
+CommunicationControl – 0x28 not applicable x
+TesterPresent – 0x3E x x
+AccessTimingParameter – 0x83 not applicable x
+SecuredDataTransmission – 0x84 not applicable x
+ControlDTCSetting – 0x85 not applicable x
+ResponseOnEvent – 0x86 xa x
+LinkControl – 0x87 not applicable x
+ReadDataByIdentifier – 0x22 xb x
+ReadMemoryByAddress – 0x23 xc x
+ReadScalingDataByIdentifier – 0x24 xb x
+ReadDataByPeriodicIdentifier – 0x2A not applicable x
+DynamicallyDefineDataIdentifier – 0x2C xd x
+WriteDataByIdentifier – 0x2E xb x
+WriteMemoryByAddress – 0x3D xc x
+ClearDiagnosticInformation – 0x14 x x
+ReadDTCInformation – 0x19 x x
+InputOutputControlByIdentifier – 0x2F not applicable x
+RoutineControl – 0x31 xe x
+RequestDownload – 0x34 not applicable x
+RequestUpload – 0x35 not applicable x
+TransferData – 0x36 not applicable x
+RequestTransferExit – 0x37 not applicable X
+RequestFileTransfer – 0x38 not applicable X
+a It is implementation specific whether the ResponseOnEvent service is also allowed during the defaultSession.
+b Secured dataIdentifiers require a SecurityAccess service and therefore a non-default diagnostic session.
+c Secured memory areas require a SecurityAccess service and therefore a non-default diagnostic session.
+d A dataIdentifier can be defined dynamically in the default and non-default diagnostic session.
+e Secured routines require a SecurityAccess service and therefore a non-default diagnostic session. A routine that requires to be
+stopped actively by the client also requires a non-default session.
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+38 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+9.2.2 Request message
+9.2.2.1 Request message definition
+Table 24 defines the request message.
+Table 24 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 DiagnosticSessionControl Request SID M 0x10 DSC
+#2 sub-function = [ diagnosticSessionType ] M 0x00 – 0xFF LEV_DS_
+9.2.2.2 Request message sub-function parameter $Level (LEV_) definition
+The sub-function parameter diagnosticSessionType is used by the DiagnosticSessionControl service to select
+the specific behaviour of the server. Explanations and usage of the possible diagnostic sessions are detailed
+in Table 25.
+The following sub-function values are specified (suppressPosRspMsgIndicationBit (bit 7) not shown).
+Table 25 — Request message sub-function parameter definition
+Bit 6-0 Description Cvt Mnemonic
+0x00 ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document.
+0x01 defaultSession M DS
+This diagnostic session enables the default diagnostic session in the server(s)
+and does not support any diagnostic application timeout handling provisions
+(e.g. no TesterPresent service is necessary to keep the session active).
+If any other session than the defaultSession has been active in the server and
+the defaultSession is once again started, then the following implementation
+rules shall be followed (see also the server diagnostic session state diagram
+given above):
+The server shall stop the current diagnostic session when it has sent the
+DiagnosticSessionControl positive response message and shall start the
+newly requested diagnostic session afterwards.
+If the server has sent a DiagnosticSessionControl positive response message
+it shall have re-locked the server if the client unlocked it during the diagnostic
+session.
+If the server sends a negative response message with the
+DiagnosticSessionControl request service identifier the active session shall be
+continued.
+NOTE In case the used data link requires an initialization step then the
+initialized server(s) shall start the default diagnostic session by default. No
+DiagnosticSessionControl with diagnosticSession set to defaultSession shall
+be required after the initialization step.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 39
+
+ISO 14229-1:2013(E)
+Table 25 — (continued)
+Bit 6-0 Description Cvt Mnemonic
+0x02 ProgrammingSession U PRGS
+This diagnosticSession enables all diagnostic services required to support the
+memory programming of a server.
+In case the server runs the programmingSession in the boot software, the
+programmingSession shall only be left via an ECUReset (0x11) service
+initiated by the client, a DiagnosticSessionControl (0x10) service with
+sessionType equal to defaultSession, or a session layer timeout in the server.
+In case the server runs in the boot software when it receives the
+DiagnosticSessionControl (0x10) service with sessionType equal to
+defaultSession or a session layer timeout occurs and a valid application
+software is present for both cases then the server shall restart the application
+software. This document does not specify the various implementation methods
+of how to achieve the restart of the valid application software (e.g. a valid
+application software can be determined directly in the boot software, during
+the ECU startup phase when performing an ECU reset, etc.).
+0x03 extendedDiagnosticSession U EXTDS
+This diagnosticSession can be used to enable all diagnostic services required
+to support the adjustment of functions like "Idle Speed, CO Value, etc." in the
+server's memory. It can also be used to enable diagnostic services, which are
+not specifically tied to the adjustment of functions (e.g., refer to timed services
+in Table 23).
+0x04 safetySystemDiagnosticSession U SSDS
+This diagnosticSession enables all diagnostic services required to support
+safety system related functions (e.g., airbag deployment).
+0x05 – 0x3F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+0x40 – 0x5F vehicleManufacturerSpecific U VMS
+This range of values is reserved for vehicle manufacturer specific use.
+0x60 – 0x7E systemSupplierSpecific U SSS
+This range of values is reserved for system supplier specific use.
+0x7F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+9.2.2.3 Request message data-parameter definition
+This service does not support data-parameters in the request message.
+9.2.3 Positive response message
+9.2.3.1 Positive response message definition
+Table 26 defines the positive response message definition.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+40 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 26 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 DiagnosticSessionControl Response SID M 0x50 DSCPR
+#2 sub-function = [ diagnosticSessionType ] M 0x00 – 0xFF LEV_DS_
+sessionParameterRecord[]#1 = [ SPREC_
+#3 data#1 M 0x00 – 0xFF DATA_1
+: : : : :
+#6 data#4 ] M 0x00 – 0xFF DATA_m
+9.2.3.2 Positive response message data-parameter definition
+Table 27 defines the response message data-parameter definition.
+Table 27 — Response message data-parameter definition
+Definition
+diagnosticSessionType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+sessionParameterRecord
+This parameter record contains session specific parameter values reported by the server. The content of the
+sessionParameterRecord is defined in Table 28 and Table 29.
+Table 28 and Table 29 define the structure of the response message data-parameter
+sessionParameterRecord as applicable for the implementation of this service on supported data links.
+Table 28 — sessionParameterRecord definition
+Byte pos.
+Description Cvt Byte Value Mnemonic
+in record
+sessionParameterRecord[] = [ SPREC_
+#1 P2 (high byte) M 0x00 – 0xFF P2SMH
+Server_max
+#2 P2 (low byte) M 0x00 – 0xFF P2SML
+Server_max
+#3 P2* (high byte) M 0x00 – 0xFF P2ESMH
+Server_max
+#4 P2* (low byte) ] M 0x00 – 0xFF P2ESML
+Server_max
+Table 29 — sessionParameterRecord content definition
+minimum maximum
+Parameter Description # of bytes Resolution
+value value
+Default P2 timing supported by the
+P2 Server_max 2 1 ms 0 ms 65 535 ms
+Server_max server for the activated diagnostic session.
+Enhanced (NRC 0x78) P2 supported
+Server_max
+P2* by the server for the activated diagnostic 2 10 ms 0 ms 655 350 ms
+Server_max
+session.
+Refer to ISO 14229-2 for further details on P2 and P2* .
+Server Server
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 41
+
+ISO 14229-1:2013(E)
+9.2.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 30. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 30 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+This NRC shall be returned if the criteria for the request DiagnosticSessionControl are not
+met.
+9.2.5 Message flow example(s) DiagnosticSessionControl
+9.2.5.1 Example #1 - Start programmingSession
+This message flow shows how to enable the diagnostic session "programmingSession" in a server. The client
+requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the sub-
+function parameter) to "FALSE" ('0'). For the given example it is assumed that the P2 is equal to
+Server_max
+50 ms and the P2* is equal to 5 000 ms.
+Server_max
+Table 31 defines the DiagnosticSessionControl request message flow example #1.
+Table 31 — DiagnosticSessionControl request message flow example #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 DiagnosticSessionControl Request SID 0x10 DSC
+#2 diagnosticSessionType = programmingSession, 0x02 DS_ECUPRGS
+suppressPosRspMsgIndicationBit = FALSE
+Table 32 defines the DiagnosticSessionControl positive response message flow example #1.
+Table 32 — DiagnosticSessionControl positive response message flow example #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 DiagnosticSessionControl Response SID 0x50 DSCPR
+#2 diagnosticSessionType = programmingSession 0x02 DS_ECUPRGS
+#3 sessionParameterRecord [ P2 (high byte) ] 0x00 SPREC_1
+Server_max
+#4 sessionParameterRecord [ P2 (low byte) ] 0x32 SPREC_2
+Server_max
+#5 sessionParameterRecord [ P2* (high byte) ] 0x01 SPREC_3
+Server_max
+#6 sessionParameterRecord [ P2* (low byte) ] 0xF4 SPREC_4
+Server_max
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+42 © ISO 2013 – All rights reserved
+
+## Tables
+---
+Service | Description
+DiagnosticSessionControl | The client requests to control a diagnostic session with a server(s).
+ECUReset | The client forces the server(s) to perform a reset.
+SecurityAccess | The client requests to unlock a secured server(s).
+CommunicationControl | The client controls the setting of communication parameters in the server (e.g.,
+communication baudrate).
+TesterPresent | The client indicates to the server(s) that it is still present.
+AccessTimingParameter | The client uses this service to read/modify the timing parameters for an active
+communication.
+SecuredDataTransmission | The client uses this service to perform data transmission with an extended data link
+security.
+ControlDTCSetting | The client controls the setting of DTCs in the server.
+ResponseOnEvent | The client requests to setup and/or control an event mechanism in the server.
+LinkControl | The client requests control of the communication baudrate.
+
+---
+
+Service | defaultSession | non-defaultSession
+DiagnosticSessionControl – 0x10 | x | x
+ECUReset – 0x11 | x | x
+SecurityAccess – 0x27 | not applicable | x
+CommunicationControl – 0x28 | not applicable | x
+TesterPresent – 0x3E | x | x
+AccessTimingParameter – 0x83 | not applicable | x
+SecuredDataTransmission – 0x84 | not applicable | x
+ControlDTCSetting – 0x85 | not applicable | x
+ResponseOnEvent – 0x86 | xa | x
+LinkControl – 0x87 | not applicable | x
+ReadDataByIdentifier – 0x22 | xb | x
+ReadMemoryByAddress – 0x23 | xc | x
+ReadScalingDataByIdentifier – 0x24 | xb | x
+ReadDataByPeriodicIdentifier – 0x2A | not applicable | x
+DynamicallyDefineDataIdentifier – 0x2C | xd | x
+WriteDataByIdentifier – 0x2E | xb | x
+WriteMemoryByAddress – 0x3D | xc | x
+ClearDiagnosticInformation – 0x14 | x | x
+ReadDTCInformation – 0x19 | x | x
+InputOutputControlByIdentifier – 0x2F | not applicable | x
+RoutineControl – 0x31 | xe | x
+RequestDownload – 0x34 | not applicable | x
+RequestUpload – 0x35 | not applicable | x
+TransferData – 0x36 | not applicable | x
+RequestTransferExit – 0x37 | not applicable | X
+RequestFileTransfer – 0x38 | not applicable | X
+a It is implementation specific whether the ResponseOnEvent service is also allowed during the defaultSession.
+b Secured dataIdentifiers require a SecurityAccess service and therefore a non-default diagnostic session.
+c Secured memory areas require a SecurityAccess service and therefore a non-default diagnostic session.
+d A dataIdentifier can be defined dynamically in the default and non-default diagnostic session.
+e Secured routines require a SecurityAccess service and therefore a non-default diagnostic session. A routine that requires to be
+stopped actively by the client also requires a non-default session. |  | 
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | DiagnosticSessionControl Request SID | M | 0x10 | DSC
+#2 | sub-function = [ diagnosticSessionType ] | M | 0x00 – 0xFF | LEV_DS_
+
+---
+
+Bit 6-0 | Description | Cvt | Mnemonic
+0x00 | ISOSAEReserved
+This value is reserved by this document. | M | ISOSAERESRVD
+0x01 | defaultSession
+This diagnostic session enables the default diagnostic session in the server(s)
+and does not support any diagnostic application timeout handling provisions
+(e.g. no TesterPresent service is necessary to keep the session active).
+If any other session than the defaultSession has been active in the server and
+the defaultSession is once again started, then the following implementation
+rules shall be followed (see also the server diagnostic session state diagram
+given above):
+The server shall stop the current diagnostic session when it has sent the
+DiagnosticSessionControl positive response message and shall start the
+newly requested diagnostic session afterwards.
+If the server has sent a DiagnosticSessionControl positive response message
+it shall have re-locked the server if the client unlocked it during the diagnostic
+session.
+If the server sends a negative response message with the
+DiagnosticSessionControl request service identifier the active session shall be
+continued.
+NOTE In case the used data link requires an initialization step then the
+initialized server(s) shall start the default diagnostic session by default. No
+DiagnosticSessionControl with diagnosticSession set to defaultSession shall
+be required after the initialization step. | M | DS
+
+---
+
+Bit 6-0 | Description | Cvt | Mnemonic
+0x02 | ProgrammingSession
+This diagnosticSession enables all diagnostic services required to support the
+memory programming of a server.
+In case the server runs the programmingSession in the boot software, the
+programmingSession shall only be left via an ECUReset (0x11) service
+initiated by the client, a DiagnosticSessionControl (0x10) service with
+sessionType equal to defaultSession, or a session layer timeout in the server.
+In case the server runs in the boot software when it receives the
+DiagnosticSessionControl (0x10) service with sessionType equal to
+defaultSession or a session layer timeout occurs and a valid application
+software is present for both cases then the server shall restart the application
+software. This document does not specify the various implementation methods
+of how to achieve the restart of the valid application software (e.g. a valid
+application software can be determined directly in the boot software, during
+the ECU startup phase when performing an ECU reset, etc.). | U | PRGS
+0x03 | extendedDiagnosticSession
+This diagnosticSession can be used to enable all diagnostic services required
+to support the adjustment of functions like "Idle Speed, CO Value, etc." in the
+server's memory. It can also be used to enable diagnostic services, which are
+not specifically tied to the adjustment of functions (e.g., refer to timed services
+in Table 23). | U | EXTDS
+0x04 | safetySystemDiagnosticSession
+This diagnosticSession enables all diagnostic services required to support
+safety system related functions (e.g., airbag deployment). | U | SSDS
+0x05 – 0x3F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+0x40 – 0x5F | vehicleManufacturerSpecific
+This range of values is reserved for vehicle manufacturer specific use. | U | VMS
+0x60 – 0x7E | systemSupplierSpecific
+This range of values is reserved for system supplier specific use. | U | SSS
+0x7F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | DiagnosticSessionControl Response SID | M | 0x50 | DSCPR
+#2 | sub-function = [ diagnosticSessionType ] | M | 0x00 – 0xFF | LEV_DS_
+#3
+:
+#6 | sessionParameterRecord[]#1 = [
+data#1
+:
+data#4 ] | M
+:
+M | 0x00 – 0xFF
+:
+0x00 – 0xFF | SPREC_
+DATA_1
+:
+DATA_m
+
+---
+
+Definition
+diagnosticSessionType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+sessionParameterRecord
+This parameter record contains session specific parameter values reported by the server. The content of the
+sessionParameterRecord is defined in Table 28 and Table 29.
+
+---
+
+Byte pos.
+in record | Description | Cvt | Byte Value | Mnemonic
+#1
+#2
+#3
+#4 | sessionParameterRecord[] = [
+P2 (high byte)
+Server_max
+P2 (low byte)
+Server_max
+P2* (high byte)
+Server_max
+P2* (low byte) ]
+Server_max | M
+M
+M
+M | 0x00 – 0xFF
+0x00 – 0xFF
+0x00 – 0xFF
+0x00 – 0xFF | SPREC_
+P2SMH
+P2SML
+P2ESMH
+P2ESML
+
+---
+
+Parameter | Description | # of bytes | Resolution | minimum
+value | maximum
+value
+P2
+Server_max | Default P2 timing supported by the
+Server_max
+server for the activated diagnostic session. | 2 | 1 ms | 0 ms | 65 535 ms
+P2*
+Server_max | Enhanced (NRC 0x78) P2 supported
+Server_max
+by the server for the activated diagnostic
+session. | 2 | 10 ms | 0 ms | 655 350 ms
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+This NRC shall be returned if the criteria for the request DiagnosticSessionControl are not
+met. | CNC
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | DiagnosticSessionControl Request SID |  | 0x10 | DSC
+#2 | diagnosticSessionType = programmingSession,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x02 | DS_ECUPRGS
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | DiagnosticSessionControl Response SID |  | 0x50 | DSCPR
+#2 | diagnosticSessionType = programmingSession |  | 0x02 | DS_ECUPRGS
+#3
+#4
+#5
+#6 | sessionParameterRecord [ P2 (high byte) ]
+Server_max
+sessionParameterRecord [ P2 (low byte) ]
+Server_max
+sessionParameterRecord [ P2* (high byte) ]
+Server_max
+sessionParameterRecord [ P2* (low byte) ]
+Server_max |  | 0x00
+0x32
+0x01
+0xF4 | SPREC_1
+SPREC_2
+SPREC_3
+SPREC_4

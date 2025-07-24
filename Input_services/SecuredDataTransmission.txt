@@ -1,0 +1,304 @@
+# Service: SecuredDataTransmission (ID: 0x84)
+# Section: 9.8
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 80 defines the AccessTimingParameter positive response message flow example #1.
+Table 80 — AccessTimingParameter positive response message flow example #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 AccessTimingParameter Response SID 0xC3 ATPPR
+#2 timingParameterAccessType = 0x02 TPAT_STPTDV
+setTimingParametersToDefaultValues
+9.8 SecuredDataTransmission (0x84) service
+9.8.1 Service description
+9.8.1.1 Purpose
+The purpose of this service is to transmit data that is protected against attacks from third parties - which could
+endanger data security.
+The SecuredDataTransmission service is applicable if a client intends to use diagnostic services defined in
+this document in a secured mode. It may also be used to transmit external data, which conform to some other
+application protocol, in a secured mode between a client and a server. A secured mode in this context means
+that the data transmitted is protected by cryptographic methods.
+9.8.1.2 Security sub-layer
+Figure 8 illustrates the security sub-layer. The security sub-layer has to be added in the server and client
+application for the purpose of performing diagnostic services in a secured mode.
+Application Application
+A_Req A_Conf SS_Req SS_Conf A_Ind A_Resp SS_Ind SS_Resp
+ISO 14229-1 ISO 14229-1
+pass-thru pass-thru
+Security Security
+sub-layer sub-layer
+Uses SecuredDataTransmission service Uses SecuredDataTransmission service
+A_Req A_Conf A_Ind A_Resp
+ISO 14229-1 ISO14229-1
+Application Layer Application Layer
+Network Layer Network Layer
+Data Link Layer Data Link Layer
+Physical Layer Physical Layer
+Figure 8 — Security sub-layer implementation
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+66 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+There are two methods to perform diagnostic service data transfer between the client and server(s):
+⎯ Unsecured data transmission mode
+The application uses the diagnostic Services and Application Layer Service Primitives defined in this
+document to exchange data between a client and a server. The Security Sub-Layer performs a "Pass-Thru" of
+data between "Application" and "Application Layer" in the client and the server.
+⎯ Secured data transmission mode
+The application uses the diagnostic services or external services and the Security sub-layer Service Primitives
+to exchange data between a client and a server. The security sub-layer uses the SecuredDataTransmission
+service for the transmission/reception of the secured data. Secured links must be point-to-point
+communication. Therefore only physical addressing is allowed, which means that only one server is involved.
+The interface of the security sub-layer to the application is according to the ISO/OSI model conventions and
+therefore provides the following four security sub-layer (SS_) service primitives
+⎯ SS_SecuredMode.req: Security sub-layer Request
+⎯ SS_SecuredMode.ind: Security sub-layer Indication
+⎯ SS_SecuredMode.resp: Security sub-layer Response
+⎯ SS_SecuredMode.conf: Security sub-layer Confirmation
+This part of ISO 14229 defines both, confirmed and unconfirmed services. In a secured mode only confirmed
+services are allowed (suppressPosRspMsgIndicationBit = FALSE). Based on this requirement the following
+services are not allowed to be executed in a secured mode:
+⎯ ResponseOnEvent (0x86);
+⎯ ReadDataByPeriodicIdentifier (0x2A);
+⎯ TesterPresent (0x3E);
+The confirmed services (suppressPosRspMsgIndicationBit = FALSE) use the four application layer service
+primitives request, indication, response and confirmation. Those are mapped onto the four security sub-layer
+service primitives and vice versa when executing a confirmed diagnostic service in a secured mode.
+The task of the Security sub-layer when performing a diagnostic service in a secured mode is to encrypt data
+provided by the "Application", to decrypt data provided by the "Application Layer" and to add, check, and
+remove security specific data elements. The Security sub-layer uses the SecuredDataTransmission (0x84)
+service of the application layer to transmit and receive the entire diagnostic message or message according to
+an external protocol (request and response), which shall be exchanged in a secured mode.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 67
+
+ISO 14229-1:2013(E)
+The security sub-layer provides the service "SecuredServiceExecution" to the application for the purpose of a
+secured execution of diagnostic services.
+The security sub-layer request and indication primitive of the "SecuredServiceExecution" service are specified
+according to the following general format:
+SS_SecuredMode.request (
+SA,
+TA,
+TA_type
+[,RA]
+[,parameter 1, ...]
+)
+SS_SecuredMode.indication (
+SA,
+TA,
+TA_type
+[,RA]
+[,parameter 1, ...]
+)
+The security sub-layer layer response and confirm primitive of the SecuredServiceExecution service are
+specified according to the following general format:
+SS_SecuredMode.response (
+SA,
+TA,
+TA_type
+[,RA,]
+Result
+[,parameter 1, ...]
+)
+SS_SecuredMode.confirm (
+SA,
+TA,
+TA_type,
+[RA,]
+Result
+[,parameter 1, ...]
+)
+The addressing information shown in the security sub-layer service primitives is mapped directly onto the
+addressing information of the application layer and vice versa.
+9.8.1.3 Security sub-layer access
+The concept of accessing the security sub-layer for a secured service execution is similar to the application
+layer interface as described in this document. The security sub-layer makes use of the application layer
+service primitives.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+68 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+The following describes the execution of confirmed diagnostic service in a secured mode:
+⎯ The client application uses the security sub-layer SecuredServiceExecution service request to perform a
+diagnostic service in a secured mode. The security sub-layer performs the required action to establish a
+link with the server(s), adds the specific security related parameters, encrypts the service data of the
+diagnostic service to be executed in a secured mode if needed and uses the application layer
+SecuredDataTransmission service request to transmit the secured data to the server.
+⎯ The server receives an application layer SecuredDataTransmission service indication , which is handled
+by the security sub-layer of the server. The security sub-layer of the server checks the security specific
+parameters decrypts encrypted data and presents the data of the service to be executed in a secured
+mode to the application via the security sub-layer SecuredServiceExecution service indiciation. The
+application executes the service and uses the security sub-layer SecuredServiceExecution service
+response to respond to the service in a secured mode. The security sub-layer of the server adds the
+specific security related parameters, encrypts the response message data if needed and uses the
+application layer SecuredDataTransmission service response to transmit the response data to the client.
+⎯ The client receives an application layer SecuredDataTransmission service confirmation primitive , which is
+handled by the security sub-layer of the client. The security sub-layer of the client checks the security
+specific parameters, decrypts encrypted response data and presents the data via the security sub-layer
+SecuredServiceExecution confirmation to the application.
+Figure 9 graphically shows the interaction of the security sub-layer, the application layer and the application
+when executing a confirmed diagnostic service in a secured mode.
+Application Application
+SS_SecuredMode.req SS_SecuredMode.conf SS_SecuredMode.ind SS_SecuredMode.resp
+Security Security
+sub-layer sub-layer
+Uses SecuredDataTransmission service Uses SecuredDataTransmission service
+A_SecuredDataTransmission.req A_SecuredDataTransmission.conf A_SecuredDataTransmission.ind A_SecuredDataTransmission.resp
+ISO 14229-1 ISO 14229-1
+Application Layer Application Layer
+Network Layer Network Layer
+Data Link Layer Data Link Layer
+Physical Layer Physical Layer
+Figure 9 — Security sub-layer, application layer and application interaction
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 69
+
+ISO 14229-1:2013(E)
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+9.8.2 Request message
+9.8.2.1 Request message definition
+The security sub-layer generates the application layer SecuredDataTransmission request message
+parameters.
+Table 81 defines the request message.
+Table 81 — Request message definition
+A_Data Byte Parameter Name Cvt Byte Value Mnemonic
+#1 SecuredDataTransmission Request SID M 0x84 SDT
+securityDataRequestRecord[] = [ SECDRQR_
+#2 securityDataParameter#1 M 0x00 – 0xFF SDP_
+: : : : :
+#n securityDataParameter#m ] M 0x00 – 0xFF SDP_
+9.8.2.2 Request message sub-function parameter $Level (LEV_) definition
+This service does not use a sub-function parameter.
+9.8.2.3 Request message data-parameter definition
+Table 82 defines the data-parameters of the request message.
+Table 82 — Request message data-parameter definition
+Definition
+securityDataRequestRecord
+This parameter contains the data as processed by the Security Sub-Layer.
+9.8.3 Positive response message
+9.8.3.1 Positive response message definition
+Table 83 defines the positive response message.
+Table 83 — Positive response message definition
+A_Data Byte Parameter Name Cvt Byte Value Mnemonic
+1 SecuredDataTransmission Response SID M 0xC4 SDTPR
+securityDataResponseRecord[] = [ SECDRQR_
+2 securityDataParameter#1 M 0x00 – 0xFF SDP_
+: : : : :
+n securityDataParameter#m ] M 0x00 – 0xFF SDP_
+9.8.3.2 Positive response message data-parameter definition
+Table 84 defines the data-parameter of the positive response message:
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+70 © ISO 2013 – All rights reserved
+
+## Tables
+---
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | AccessTimingParameter Response SID |  | 0xC3 | ATPPR
+#2 | timingParameterAccessType =
+setTimingParametersToDefaultValues |  | 0x02 | TPAT_STPTDV
+
+---
+
+ |  | 
+pass-thru |  | Security
+sub-layer
+Uses SecuredDataTransmission service
+
+---
+
+ | 
+ | pass-thru
+Security
+sub-layer
+Uses SecuredDataTransmission service
+
+---
+
+SS_Secure | dMode.req
+
+---
+
+SS_Secur | edMode.conf
+
+---
+
+SS_Secure | dMode.ind
+
+---
+
+SS_Secure | dMode.resp
+
+---
+
+A_SecuredDataTr | ansmission.req
+
+---
+
+A_SecuredDataT | ransmission.conf
+
+---
+
+A_SecuredDataTra | nsmission.ind
+
+---
+
+A_SecuredDataTr | ansmission.resp
+
+---
+
+A_Data Byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | SecuredDataTransmission Request SID | M | 0x84 | SDT
+#2
+:
+#n | securityDataRequestRecord[] = [
+securityDataParameter#1
+:
+securityDataParameter#m ] | M
+:
+M | 0x00 – 0xFF
+:
+0x00 – 0xFF | SECDRQR_
+SDP_
+:
+SDP_
+
+---
+
+Definition
+securityDataRequestRecord
+This parameter contains the data as processed by the Security Sub-Layer.
+
+---
+
+A_Data Byte | Parameter Name | Cvt | Byte Value | Mnemonic
+1 | SecuredDataTransmission Response SID | M | 0xC4 | SDTPR
+2
+:
+n | securityDataResponseRecord[] = [
+securityDataParameter#1
+:
+securityDataParameter#m ] | M
+:
+M | 0x00 – 0xFF
+:
+0x00 – 0xFF | SECDRQR_
+SDP_
+:
+SDP_

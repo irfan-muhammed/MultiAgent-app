@@ -1,0 +1,411 @@
+# Service: RequestDownload (ID: 0x34)
+# Section: 14.2
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+14 Upload Download functional unit
+14.1 Overview
+Table 392 defines the Upload Download functional unit.
+Table 392 — Upload Download functional unit
+Service Description
+RequestDownload The client requests the negotiation of a data transfer from the client to the server.
+RequestUpload The client requests the negotiation of a data transfer from the server to the client.
+TransferData The client transmits data to the server (download) or requests data from the server
+(upload).
+RequestTransferExit The client requests the termination of a data transfer.
+RequestFileTransfer The client requests the negotiation of a file transfer between server and client.
+14.2 RequestDownload (0x34) service
+14.2.1 Service description
+The requestDownload service is used by the client to initiate a data transfer from the client to the server
+(download).
+After the server has received the requestDownload request message the server shall take all necessary
+actions to receive data before it sends a positive response message.
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+14.2.2 Request message
+14.2.2.1 Request message definition
+Table 393 defines the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+270 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 393 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 RequestDownload Request SID M 0x34 RD
+#2 dataFormatIdentifier M 0x00 – 0xFF DFI_
+#3 addressAndLengthFormatIdentifier M 0x00 – 0xFF ALFID
+memoryAddress[] = [ MA_
+#4 byte#1 (MSB) M 0x00 – 0xFF B1
+: : : : :
+#(m-1)+4 byte#m ] C 0x00 – 0xFF Bm
+1
+memorySize[] = [ MS_
+#n-(k-1) byte#1 (MSB) M 0x00 – 0xFF B1
+: : : : :
+#n byte#k ] C 0x00 – 0xFF Bk
+2
+C : The presence of this parameter depends on address length information parameter of the
+1
+addressAndLengthFormatIdentifier
+C : The presence of this parameter depends on the memory size length information of the
+2
+addressAndLengthFormatIdentifier.
+14.2.2.2 Request message sub-function parameter $Level (LEV_) definition
+This service does not use a sub-function parameter.
+14.2.2.3 Request message data-parameter definition
+Table 394 defines the data-parameters of the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 271
+
+ISO 14229-1:2013(E)
+Table 394 — Request message data-parameter definition
+Definition
+dataFormatIdentifier
+This data-parameter is a one byte value with each nibble encoded separately. The high nibble specifies the
+"compressionMethod", and the low nibble specifies the "encryptingMethod". The value 0x00 specifies that neither
+compressionMethod nor encryptingMethod is used. Values other than 0x00 are vehicle manufacturer specific.
+addressAndLengthFormatIdentifier
+This parameter is a one byte value with each nibble encoded separately (see H.1 for example values):
+⎯ bit 7 - 4: Length (number of bytes) of the memorySize parameter
+⎯ bit 3 - 0: Length (number of bytes) of the memoryAddress parameter
+memoryAddress
+The parameter memoryAddress is the starting address of the server memory where the data is to be written to. The
+number of bytes used for this address is defined by the low nibble (bit 3 - 0) of the addressAndLengthFormatIdentifier.
+Byte#m in the memoryAddress parameter is always the least significant byte of the address being referenced in the
+server. The most significant byte(s) of the address can be used as a memory identifier.
+An example of the use of a memory identifier would be a dual processor server with 16 bit addressing and memory
+address overlap (when a given address is valid for either processor but yields a different physical memory device or
+internal and external flash is used). In this case, an otherwise unused byte within the memoryAddress parameter can be
+specified as a memory identifier used to select the desired memory device. Usage of this functionality shall be as
+defined by vehicle manufacturer / system supplier.
+memorySize
+This parameter shall be used by the server to compare the memory size with the total amount of data transferred during
+the TransferData service. This increases the programming security. The number of bytes used for this size is defined by
+the high nibble (bit 7 - 4) of the addressAndLengthFormatIdentifier. If data compression is used, it is vehicle
+manufacturer specific whether or not the memory size represents the compressed or uncompressed size.
+14.2.3 Positive response message
+14.2.3.1 Positive response message definition
+Table 395 defines the positive response message.
+Table 395 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 RequestDownload Response SID M 0x74 RDPR
+#2 lengthFormatIdentifier M 0x00 – 0xF0 LFID
+maxNumberOfBlockLength = [ MNROB_
+#3 byte#1 (MSB) M 0x00 – 0xFF B1
+: : : : :
+#n byte#m ] M 0x00 – 0xFF Bm
+14.2.3.2 Positive response message data-parameter definition
+Table 396 defines the data-parameters of the positive response message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+272 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 396 — Response message data-parameter definition
+Definition
+lengthFormatIdentifier
+This parameter is a one byte value with each nibble encoded separately:
+⎯ bit 7 - 4: Length (number of bytes) of the maxNumberOfBlockLength parameter.
+⎯ bit 3 - 0: reserved by document, to be set to '0'.
+The format of this parameter is compatible to the format of the addressAndLengthFormatIdentifier parameter contained
+in the request message, except that the lower nibble has to be set to '0'.
+maxNumberOfBlockLength
+This parameter is used by the requestDownload positive response message to inform the client how many data bytes
+(maxNumberOfBlockLength) to include in each TransferData request message from the client. This length reflects the
+complete message length, including the service identifier and the data-parameters present in the TransferData request
+message. This parameter allows the client to adapt to the receive buffer size of the server before it starts transferring
+data to the server. A server is required to accept transferData requests that are equal in length to its reported
+maxNumberOfBlockLength. It is server specific what transferData request lengths less than maxNumberOfBlockLength
+are accepted (if any). Note that the last transferData request within a given block may be required to be less than
+maxNumberOfBlockLength. It is not allowed for a server to write additional data bytes (i.e,. pad bytes) not contained
+within the transferData message (either in a compressed or uncompressed format), as this would affect the memory
+address of where the subsequent transferData request data would be written.
+14.2.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 397. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 397 — Supported negative response codes
+NRC Description Mnemonic
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+This NRC shall be returned if a server receives a request for this service while in the process
+of receiving a download of a software or calibration module. This could occur if there is a data
+size mismatch between the server and the client during the download of a module.
+0x31 requestOutOfRange ROOR
+This NRC shall be returned if:
+⎯ the specified dataFormatIdentifier is not valid.
+⎯ the specified addressAndLengthFormatIdentifier is not valid.
+⎯ the specified memoryAddress/memorySize is not valid.
+0x33 securityAccessDenied SAD
+This NRC shall be returned if the server is secure (for server’s that support the
+SecurityAccess service) when a request for this service has been received.
+0x70 uploadDownloadNotAccepted UDNA
+This NRC indicates that an attempt to download to a server's memory cannot be
+accomplished due to some fault conditions.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 273
+
+ISO 14229-1:2013(E)
+The evaluation sequence is documented in Figure 26.
+mandatory optional manufacturer/supplier
+specific
+Service with SID 0x34
+1
+minimum length check NO NRC 0x13
+YES
+dataFormatIdentifier is valid.
+AND NO NRC 0x31
+addressAndLengthFormatIde
+ntifier is valid
+YES
+2
+Full length check NO NRC 0x13
+YES
+memoryAddress/memorySize
+NO NRC 0x31
+is valid
+YES
+security check ok for
+requested memory interval? NO NRC 0x33 Condition
+check
+YES
+NO NRC 0x22
+YES
+Download fault
+Condition check
+NO NRC 0x70
+Manufacturer/
+supplier
+YES specific check
+NO NRC 0xXX
+YES
+positive response
+Key
+1 at least 5 (SI + DFI_ + ALFID + minimum MA_ + minimum MS_)
+2 length can be computed from addressAndLengthFormatIdentifier
+Figure 26 — NRC handling for RequestDownload service
+14.2.5 Message flow example(s) RequestDownload
+See 14.5.5 for a complete message flow example.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+274 © ISO 2013 – All rights reserved
+
+## Tables
+---
+Service | Description
+RequestDownload | The client requests the negotiation of a data transfer from the client to the server.
+RequestUpload | The client requests the negotiation of a data transfer from the server to the client.
+TransferData | The client transmits data to the server (download) or requests data from the server
+(upload).
+RequestTransferExit | The client requests the termination of a data transfer.
+RequestFileTransfer | The client requests the negotiation of a file transfer between server and client.
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | RequestDownload Request SID | M | 0x34 | RD
+#2 | dataFormatIdentifier | M | 0x00 – 0xFF | DFI_
+#3 | addressAndLengthFormatIdentifier | M | 0x00 – 0xFF | ALFID
+#4
+:
+#(m-1)+4 | memoryAddress[] = [
+byte#1 (MSB)
+:
+byte#m ] | M
+:
+C
+1 | 0x00 – 0xFF
+:
+0x00 – 0xFF | MA_
+B1
+:
+Bm
+#n-(k-1)
+:
+#n | memorySize[] = [
+byte#1 (MSB)
+:
+byte#k ] | M
+:
+C
+2 | 0x00 – 0xFF
+:
+0x00 – 0xFF | MS_
+B1
+:
+Bk
+C : The presence of this parameter depends on address length information parameter of the
+1
+addressAndLengthFormatIdentifier
+C : The presence of this parameter depends on the memory size length information of the
+2
+addressAndLengthFormatIdentifier. |  |  |  | 
+
+---
+
+Definition
+dataFormatIdentifier
+This data-parameter is a one byte value with each nibble encoded separately. The high nibble specifies the
+"compressionMethod", and the low nibble specifies the "encryptingMethod". The value 0x00 specifies that neither
+compressionMethod nor encryptingMethod is used. Values other than 0x00 are vehicle manufacturer specific.
+addressAndLengthFormatIdentifier
+This parameter is a one byte value with each nibble encoded separately (see H.1 for example values):
+⎯ bit 7 - 4: Length (number of bytes) of the memorySize parameter
+⎯ bit 3 - 0: Length (number of bytes) of the memoryAddress parameter
+memoryAddress
+The parameter memoryAddress is the starting address of the server memory where the data is to be written to. The
+number of bytes used for this address is defined by the low nibble (bit 3 - 0) of the addressAndLengthFormatIdentifier.
+Byte#m in the memoryAddress parameter is always the least significant byte of the address being referenced in the
+server. The most significant byte(s) of the address can be used as a memory identifier.
+An example of the use of a memory identifier would be a dual processor server with 16 bit addressing and memory
+address overlap (when a given address is valid for either processor but yields a different physical memory device or
+internal and external flash is used). In this case, an otherwise unused byte within the memoryAddress parameter can be
+specified as a memory identifier used to select the desired memory device. Usage of this functionality shall be as
+defined by vehicle manufacturer / system supplier.
+memorySize
+This parameter shall be used by the server to compare the memory size with the total amount of data transferred during
+the TransferData service. This increases the programming security. The number of bytes used for this size is defined by
+the high nibble (bit 7 - 4) of the addressAndLengthFormatIdentifier. If data compression is used, it is vehicle
+manufacturer specific whether or not the memory size represents the compressed or uncompressed size.
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | RequestDownload Response SID | M | 0x74 | RDPR
+#2 | lengthFormatIdentifier | M | 0x00 – 0xF0 | LFID
+#3
+:
+#n | maxNumberOfBlockLength = [
+byte#1 (MSB)
+:
+byte#m ] | M
+:
+M | 0x00 – 0xFF
+:
+0x00 – 0xFF | MNROB_
+B1
+:
+Bm
+
+---
+
+Definition
+lengthFormatIdentifier
+This parameter is a one byte value with each nibble encoded separately:
+⎯ bit 7 - 4: Length (number of bytes) of the maxNumberOfBlockLength parameter.
+⎯ bit 3 - 0: reserved by document, to be set to '0'.
+The format of this parameter is compatible to the format of the addressAndLengthFormatIdentifier parameter contained
+in the request message, except that the lower nibble has to be set to '0'.
+maxNumberOfBlockLength
+This parameter is used by the requestDownload positive response message to inform the client how many data bytes
+(maxNumberOfBlockLength) to include in each TransferData request message from the client. This length reflects the
+complete message length, including the service identifier and the data-parameters present in the TransferData request
+message. This parameter allows the client to adapt to the receive buffer size of the server before it starts transferring
+data to the server. A server is required to accept transferData requests that are equal in length to its reported
+maxNumberOfBlockLength. It is server specific what transferData request lengths less than maxNumberOfBlockLength
+are accepted (if any). Note that the last transferData request within a given block may be required to be less than
+maxNumberOfBlockLength. It is not allowed for a server to write additional data bytes (i.e,. pad bytes) not contained
+within the transferData message (either in a compressed or uncompressed format), as this would affect the memory
+address of where the subsequent transferData request data would be written.
+
+---
+
+NRC | Description | Mnemonic
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+This NRC shall be returned if a server receives a request for this service while in the process
+of receiving a download of a software or calibration module. This could occur if there is a data
+size mismatch between the server and the client during the download of a module. | CNC
+0x31 | requestOutOfRange
+This NRC shall be returned if:
+⎯ the specified dataFormatIdentifier is not valid.
+⎯ the specified addressAndLengthFormatIdentifier is not valid.
+⎯ the specified memoryAddress/memorySize is not valid. | ROOR
+0x33 | securityAccessDenied
+This NRC shall be returned if the server is secure (for server’s that support the
+SecurityAccess service) when a request for this service has been received. | SAD
+0x70 | uploadDownloadNotAccepted
+This NRC indicates that an attempt to download to a server's memory cannot be
+accomplished due to some fault conditions. | UDNA
+
+---
+
+ | minimum length check | 
+
+---
+
+
+NO
+
+---
+
+Y | ES
+
+---
+
+NO
+
+
+---
+
+Y | ES
+
+---
+
+ | Full length check | 
+
+---
+
+Y | ES
+
+---
+
+
+NO
+
+---
+
+Y | ES
+
+---
+
+YES
+YES | 
+ | YES
+
+---
+
+
+YES
+
+---
+
+Download fault
+Condition check | 
+ | NRC 0x70
+
+---
+
+
+YES
+
+---
+
+
+NO
+
+---
+
+YES
+

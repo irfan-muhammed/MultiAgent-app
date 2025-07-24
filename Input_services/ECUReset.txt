@@ -1,0 +1,282 @@
+# Service: ECUReset (ID: 0x11)
+# Section: 9.3
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+9.3 ECUReset (0x11) service
+9.3.1 Service description
+The ECUReset service is used by the client to request a server reset.
+This service requests the server to effectively perform a server reset based on the content of the resetType
+parameter value embedded in the ECUReset request message. The ECUReset positive response message (if
+required) shall be sent before the reset is executed in the server(s). After a successful server reset the server
+shall activate the defaultSession.
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+This part of ISO 14229 does not define the behaviour of the ECU from the time following the positive response
+message to the ECU reset request until the reset has successfully completed. It is recommended that during
+this time the ECU does not accept any request messages and send any response messages.
+9.3.2 Request message
+9.3.2.1 Request message definition
+Table 33 defines the request message definition.
+Table 33 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 ECUReset Request SID M 0x11 ER
+#2 sub-function = [ resetType ] M 0x00 – 0xFF LEV_RT_
+9.3.2.2 Request message sub-function Parameter $Level (LEV_) definition
+The sub-function parameter resetType is used by the ECUReset request message to describe how the server
+has to perform the reset (suppressPosRspMsgIndicationBit (bit 7) not shown).
+Table 34 defines the request message sub-function parameter definition.
+Table 34 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document.
+0x01 hardReset U HR
+This value identifies a "hard reset" condition which simulates the power-on /
+start-up sequence typically performed after a server has been previously
+disconnected from its power supply (i.e. battery). The performed action is
+implementation specific and not defined by the standard. It might result in the
+re-initialization of both volatile memory and non-volatile memory locations to
+predetermined values.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 43
+
+ISO 14229-1:2013(E)
+Table 34 — (continued)
+Bits 6 – 0 Description Cvt Mnemonic
+0x02 keyOffOnReset U KOFFONR
+This value identifies a condition similar to the driver turning the ignition key off
+and back on. This reset condition should simulate a key-off-on sequence (i.e.
+interrupting the switched power supply). The performed action is
+implementation specific and not defined by the standard. Typically the values
+of non-volatile memory locations are preserved; volatile memory will be
+initialized.
+0x03 softReset U SR
+This value identifies a "soft reset" condition, which causes the server to
+immediately restart the application program if applicable. The performed
+action is implementation specific and not defined by the standard. A typical
+action is to restart the application without reinitializing of previously learned
+configuration data, adaptive factors and other long-term adjustments.
+0x04 enableRapidPowerShutDown U ERPSD
+This subfunction applies to ECUs which are not ignition powered but battery
+powered only. Therefore a shutdown forces the sleep mode rather than a
+power off. Sleep means power off but still ready for wake-up (battery
+powered). The intention of the subfunction is to reduce the stand-by time of
+an ECU after ignition is turned into the off position.
+This value requests the server to enable and perform a "rapid power shut
+down" function. The server shall execute the function immediately once the
+"key/ignition” is switched off. While the server executes the power down
+function, it shall transition either directly or after a defined stand-by-time to
+sleep mode. If the client requires a response message and the server is
+already prepared to execute the "rapid power shut down" function, the server
+shall send the positive response message prior to the start of the "rapid
+power shut down" function. The next occurrence of a "key on" or "ignition on"
+signal terminates the "rapid power shut down" function.
+NOTE This sub-function is only applicable to a server supporting a
+stand-by-mode!
+0x05 disableRapidPowerShutDown U DRPSD
+This value requests the server to disable the previously enabled "rapid power
+shut down" function.
+0x06 – 0x3F ISOSAEReserved M ISOSAERESRVD
+This range of values is reserved by this document for future definition.
+0x40 – 0x5F vehicleManufacturerSpecific U VMS
+This range of values is reserved for vehicle manufacturer specific use.
+0x60 – 0x7E systemSupplierSpecific U SSS
+This range of values is reserved for system supplier specific use.
+0x7F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+9.3.2.3 Request message data-parameter definition
+This service does not support data-parameters in the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+44 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+9.3.3 Positive response message
+9.3.3.1 Positive response message definition
+Table 35 defines the positive response message.
+Table 35 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 ECUReset Response SID M 0x51 ERPR
+#2 sub-function = [ resetType ] M 0x00 – 0x7F LEV_RT_
+#3 powerDownTime C 0x00 – 0xFF PDT
+C: This parameter is present if the sub-function parameter is set to the enableRapidPowerShutDown value (0x04);
+9.3.3.2 Positive response message data-parameter definition
+Table 36 defines the data-parameters of the response message.
+Table 36 — Response message data-parameter definition
+Definition
+resetType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+powerDownTime
+This parameter indicates to the client the minimum time of the stand-by-sequence the server will remain in the power
+down sequence.
+The resolution of this parameter is one (1) second per count.
+The follwing values are valid:
+⎯ 0x00 – 0xFE: 0 – 254 seconds powerDownTime,
+⎯ 0xFF: indicates a failure or time not available.
+9.3.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 37. The listed negative responses shall be used if
+the error scenario applies to the server.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 45
+
+ISO 14229-1:2013(E)
+Table 37 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+This NRC shall be returned if the criteria for the ECUReset request is not met.
+0x33 securityAccessDenied SAD
+This NRC shall be sent if the requested reset is secured and the server is not in an unlocked
+state.
+9.3.5 Message flow example ECUReset
+This subclause specifies the conditions for the example to be fulfilled to successfully perform an ECUReset
+service in the server.
+Condition of server: ignition = on, system shall not be in an operational mode (e.g. if the system is an engine
+management, engine shall be off).
+The client requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the
+sub-function parameter) to 'FALSE'.
+The server shall send an ECUReset positive response message before the server performs the resetType.
+Table 38 defines the ECUReset request message flow example #1.
+Table 38 — ECUReset request message flow example #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 ECUReset Request SID 0x11 ER
+#2 ResetType = hardReset, 0x01 RT_HR
+suppressPosRspMsgIndicationBit = FALSE
+Table 39 defines the ECUReset positive response message flow example #1.
+Table 39 — ECUReset positive response message flow example #1
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 ECUReset Response SID 0x51 ERPR
+#2 resetType = hardReset 0x01 RT_HR
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+46 © ISO 2013 – All rights reserved
+
+## Tables
+---
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | ECUReset Request SID | M | 0x11 | ER
+#2 | sub-function = [ resetType ] | M | 0x00 – 0xFF | LEV_RT_
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | ISOSAEReserved
+This value is reserved by this document. | M | ISOSAERESRVD
+0x01 | hardReset
+This value identifies a "hard reset" condition which simulates the power-on /
+start-up sequence typically performed after a server has been previously
+disconnected from its power supply (i.e. battery). The performed action is
+implementation specific and not defined by the standard. It might result in the
+re-initialization of both volatile memory and non-volatile memory locations to
+predetermined values. | U | HR
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x02 | keyOffOnReset
+This value identifies a condition similar to the driver turning the ignition key off
+and back on. This reset condition should simulate a key-off-on sequence (i.e.
+interrupting the switched power supply). The performed action is
+implementation specific and not defined by the standard. Typically the values
+of non-volatile memory locations are preserved; volatile memory will be
+initialized. | U | KOFFONR
+0x03 | softReset
+This value identifies a "soft reset" condition, which causes the server to
+immediately restart the application program if applicable. The performed
+action is implementation specific and not defined by the standard. A typical
+action is to restart the application without reinitializing of previously learned
+configuration data, adaptive factors and other long-term adjustments. | U | SR
+0x04 | enableRapidPowerShutDown
+This subfunction applies to ECUs which are not ignition powered but battery
+powered only. Therefore a shutdown forces the sleep mode rather than a
+power off. Sleep means power off but still ready for wake-up (battery
+powered). The intention of the subfunction is to reduce the stand-by time of
+an ECU after ignition is turned into the off position.
+This value requests the server to enable and perform a "rapid power shut
+down" function. The server shall execute the function immediately once the
+"key/ignition” is switched off. While the server executes the power down
+function, it shall transition either directly or after a defined stand-by-time to
+sleep mode. If the client requires a response message and the server is
+already prepared to execute the "rapid power shut down" function, the server
+shall send the positive response message prior to the start of the "rapid
+power shut down" function. The next occurrence of a "key on" or "ignition on"
+signal terminates the "rapid power shut down" function.
+NOTE This sub-function is only applicable to a server supporting a
+stand-by-mode! | U | ERPSD
+0x05 | disableRapidPowerShutDown
+This value requests the server to disable the previously enabled "rapid power
+shut down" function. | U | DRPSD
+0x06 – 0x3F | ISOSAEReserved
+This range of values is reserved by this document for future definition. | M | ISOSAERESRVD
+0x40 – 0x5F | vehicleManufacturerSpecific
+This range of values is reserved for vehicle manufacturer specific use. | U | VMS
+0x60 – 0x7E | systemSupplierSpecific
+This range of values is reserved for system supplier specific use. | U | SSS
+0x7F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | ECUReset Response SID | M | 0x51 | ERPR
+#2 | sub-function = [ resetType ] | M | 0x00 – 0x7F | LEV_RT_
+#3 | powerDownTime | C | 0x00 – 0xFF | PDT
+C: This parameter is present if the sub-function parameter is set to the enableRapidPowerShutDown value (0x04); |  |  |  | 
+
+---
+
+Definition
+resetType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+powerDownTime
+This parameter indicates to the client the minimum time of the stand-by-sequence the server will remain in the power
+down sequence.
+The resolution of this parameter is one (1) second per count.
+The follwing values are valid:
+⎯ 0x00 – 0xFE: 0 – 254 seconds powerDownTime,
+⎯ 0xFF: indicates a failure or time not available.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+This NRC shall be returned if the criteria for the ECUReset request is not met. | CNC
+0x33 | securityAccessDenied
+This NRC shall be sent if the requested reset is secured and the server is not in an unlocked
+state. | SAD
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | ECUReset Request SID |  | 0x11 | ER
+#2 | ResetType = hardReset,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x01 | RT_HR
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | ECUReset Response SID |  | 0x51 | ERPR
+#2 | resetType = hardReset |  | 0x01 | RT_HR

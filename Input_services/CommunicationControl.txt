@@ -1,0 +1,360 @@
+# Service: CommunicationControl (ID: 0x28)
+# Section: 9.5
+
+## Text Content
+---
+ISO 14229-1:2013(E)
+Table 50 defines the SecurityAccess positive response message flow example #1 – step #2.
+Table 50 — SecurityAccess positive response message flow example #1 – step #2
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 SecurityAccess Response SID 0x67 SAPR
+#2 securityAccessType = sendKey 0x02 SAT_SK
+9.4.5.3 Example #2 - server is in an “unlocked” state
+9.4.5.3.1 Step #1: Request the Seed
+Table 51 defines the SecurityAccess request message flow example #2 – step #1.
+Table 51 — SecurityAccess request message flow example #2 – step #1
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 SecurityAccess Request SID 0x27 SA
+#2 securityAccessType = 0x01 SAT_RSD
+requestSeed,
+suppressPosRspMsgIndicationBit = FALSE
+Table 52 defines the SecurityAccess positive response message flow example #2 – step #2.
+Table 52 — SecurityAccess positive response message flow example #2 – step #2
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 SecurityAccess Response SID 0x67 SAPR
+#2 securityAccessType = requestSeed 0x01 SAT_RSD
+#3 securitySeed [ byte#1 ] = seed#1 (high byte) 0x00 SECHB
+#4 securitySeed [ byte#2 ] = seed#2 (low byte) 0x00 SECLB
+9.5 CommunicationControl (0x28) service
+9.5.1 Service description
+The purpose of this service is to switch on/off the transmission and/or the reception of certain messages of (a)
+server(s) (e.g. application communication messages).
+IMPORTANT — The server and the client shall meet the request and response message behaviour as
+specified in 7.5.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 53
+
+ISO 14229-1:2013(E)
+9.5.2 Request message
+9.5.2.1 Request message definition
+Table 53 defines the request message.
+Table 53 — Request message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 CommunicationControl Request SID M 0x28 CC
+#2 sub-function = [ controlType ] M 0x00 – 0xFF LEV_CTRLTP
+#3 communicationType M 0x00 – 0xFF CTP
+#4 nodeIdentificationNumber (high byte) Ca 0x00 – 0xFF NIN
+#5 nodeIdentificationNumber (low byte) Ca 0x00 – 0xFF NIN
+a The presence of the C parameter requires the controlType either being 0x04 or 0x05.
+9.5.2.2 Request message sub-function parameter $Level (LEV_) definition
+The sub-function parameter controlType contains information on how the server shall modify the
+communication type referenced in the communicationType parameter (suppressPosRspMsgIndicationBit
+(bit 7) not shown in Table 54).
+Table 54 — Request message sub-function parameter definition
+Bits 6 – 0 Description Cvt Mnemonic
+0x00 enableRxAndTx U ERXTX
+This value indicates that the reception and transmission of messages shall be
+enabled for the specified communicationType.
+0x01 enableRxAndDisableTx U ERXDTX
+This value indicates that the reception of messages shall be enabled and the
+transmission shall be disabled for the specified communicationType.
+0x02 disableRxAndEnableTx U DRXETX
+This value indicates that the reception of messages shall be disabled and the
+transmission shall be enabled for the specified communicationType.
+0x03 disableRxAndTx U DRXTX
+This value indicates that the reception and transmission of messages shall be
+disabled for the specified communicationType.
+0x04 enableRxAndDisableTxWithEnhancedAddressInformation U ERXDTXWEAI
+This value indicates that the addressed bus master shall switch the related
+sub-bus segment to the diagnostic-only scheduling mode.
+0x05 enableRxAndTxWithEnhancedAddressInformation U ERXTXWEAI
+This value indicates that the addressed bus master shall switch the related
+sub-bus segment to the application scheduling mode.
+0x06 – 0x3F ISOSAEReserved M ISOSAERESRVD
+This range of values is reserved by this document for future definition.
+0x40 – 0x5F vehicleManufacturerSpecific U VMS
+This range of values is reserved for vehicle manufacturer specific use.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+54 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+Table 54 — (continued)
+Bits 6 – 0 Description Cvt Mnemonic
+0x60 – 0x7E systemSupplierSpecific U SSS
+This range of values is reserved for system supplier specific use.
+0x7F ISOSAEReserved M ISOSAERESRVD
+This value is reserved by this document for future definition.
+9.5.2.3 Request message data-parameter definition
+Table 55 defines the data-parameters of the request message.
+Table 55 — Request message data-parameter definition
+Definition
+communicationType
+This parameter is used to reference the kind of communication to be controlled. The communicationType parameter is a
+bit-code value, which allows controlling multiple communication types at the same time. (see Annex B.1 for the coding of
+the communicationType data-parameter)
+nodeIdentificationNumber
+This 2 byte parameter is used to identify a node on a sub-network somewhere in the vehicle, which can not be
+addressed using the addressing methods of the lower OSI layers 1 to 6. This parameter is only present, if the sub-
+function parameter controlType is set to 0x04 or 0x05 (see Annex B.4 for the coding of the nodeIdentificationNumber
+data-parameter)
+9.5.3 Positive response message
+9.5.3.1 Positive response message definition
+Table 56 defines the positive response message.
+Table 56 — Positive response message definition
+A_Data byte Parameter Name Cvt Byte Value Mnemonic
+#1 CommunicationControl Response SID M 0x68 CCPR
+#2 sub-function = [ controlType ] M 0x00 – 0x7F LEV_CTRLTP
+9.5.3.2 Positive response message data-parameter definition
+Table 57 defines the data-parameters of the positive response message.
+Table 57 — Response message data-parameter definition
+Definition
+controlType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 55
+
+ISO 14229-1:2013(E)
+9.5.4 Supported negative response codes (NRC_)
+The following negative response codes shall be implemented for this service. The circumstances under which
+each response code would occur are documented in Table 58. The listed negative responses shall be used if
+the error scenario applies to the server.
+Table 58 — Supported negative response codes
+NRC Description Mnemonic
+0x12 sub-functionNotSupported SFNS
+This NRC shall be sent if the sub-function parameter is not supported.
+0x13 incorrectMessageLengthOrInvalidFormat IMLOIF
+This NRC shall be sent if the length of the message is wrong.
+0x22 conditionsNotCorrect CNC
+Used when the server is in a critical normal mode activity and therefore cannot
+disable/enable the requested communication type.
+0x31 requestOutOfRange ROOR
+The server shall use this response code, if it detects an error in the communicationType or
+nodeIdentificationNumber parameter.
+9.5.5 Message flow example CommunicationControl (disable transmission of network
+management messages)
+The client requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the
+sub-function parameter) to "FALSE" ('0').
+Table 59 defines the CommunicationControl request message flow example.
+Table 59 — CommunicationControl request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Request SID 0x28 CC
+#2 controlType = enableRxAndDisableTx, 0x01 ERXTX
+suppressPosRspMsgIndicationBit = FALSE
+#3 communicationType = network management 0x02 NWMCP
+Table 60 defines the CommunicationControl positive response message flow example.
+Table 60 — CommunicationControl positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Response SID 0x68 CCPR
+#2 ControlType 0x01 CTRLTP
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+56 © ISO 2013 – All rights reserved
+
+ISO 14229-1:2013(E)
+9.5.6 Message flow example CommunicationControl (switch a remote network into the diagnostic-
+only scheduling mode where the node with address 0x000A is connected to)
+The client requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the
+sub-function parameter) to "FALSE" ('0').
+Table 61 defines the CommunicationControl request message flow example.
+Table 61 — CommunicationControl request message flow example
+Message direction client → server
+Message Type Request
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Request SID 0x28 CC
+#2 controlType = 0x04 ERXTX
+enableRxAndDisableTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE
+#3 communicationType = normal messages 0x01 NMCP
+#4 nodeIdentificationNumber (high byte) 0x00 NIN
+#5 nodeIdentificationNumber (low byte) 0x0A NIN
+Table 62 defines the CommunicationControl positive response message flow example.
+Table 62 — CommunicationControl positive response message flow example
+Message direction server → client
+Message Type Response
+A_Data byte Description (all values are in hexadecimal) Byte Value Mnemonic
+#1 CommunicationControl Response SID 0x68 CCPR
+#2 controlType = 0x04 ERXTX
+enableRxAndDisableTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE
+9.5.7 Message flow example CommunicationControl (switch to application scheduling mode with
+enhanced address information, the node 0x000A, which is connected to a sub-network, is
+addressed)
+The client requests to have a response message by setting the suppressPosRspMsgIndicationBit (bit 7 of the
+sub-function parameter) to "FALSE" ('0').
+Table 63 defines the CommunicationControl request message flow example.
+Licensed to rpb@tinet.org
+ISO Store order #: OP-38607/Downloaded: 2014-11-19
+Single user licence only, copying and networking prohibited.
+© ISO 2013 – All rights reserved 57
+
+## Tables
+---
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | SecurityAccess Response SID |  | 0x67 | SAPR
+#2 | securityAccessType = sendKey |  | 0x02 | SAT_SK
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | SecurityAccess Request SID |  | 0x27 | SA
+#2 | securityAccessType =
+requestSeed,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x01 | SAT_RSD
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | SecurityAccess Response SID |  | 0x67 | SAPR
+#2 | securityAccessType = requestSeed |  | 0x01 | SAT_RSD
+#3
+#4 | securitySeed [ byte#1 ] = seed#1 (high byte)
+securitySeed [ byte#2 ] = seed#2 (low byte) |  | 0x00
+0x00 | SECHB
+SECLB
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | CommunicationControl Request SID | M | 0x28 | CC
+#2 | sub-function = [ controlType ] | M | 0x00 – 0xFF | LEV_CTRLTP
+#3 | communicationType | M | 0x00 – 0xFF | CTP
+#4 | nodeIdentificationNumber (high byte) | Ca | 0x00 – 0xFF | NIN
+#5 | nodeIdentificationNumber (low byte) | Ca | 0x00 – 0xFF | NIN
+a The presence of the C parameter requires the controlType either being 0x04 or 0x05. |  |  |  | 
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x00 | enableRxAndTx
+This value indicates that the reception and transmission of messages shall be
+enabled for the specified communicationType. | U | ERXTX
+0x01 | enableRxAndDisableTx
+This value indicates that the reception of messages shall be enabled and the
+transmission shall be disabled for the specified communicationType. | U | ERXDTX
+0x02 | disableRxAndEnableTx
+This value indicates that the reception of messages shall be disabled and the
+transmission shall be enabled for the specified communicationType. | U | DRXETX
+0x03 | disableRxAndTx
+This value indicates that the reception and transmission of messages shall be
+disabled for the specified communicationType. | U | DRXTX
+0x04 | enableRxAndDisableTxWithEnhancedAddressInformation
+This value indicates that the addressed bus master shall switch the related
+sub-bus segment to the diagnostic-only scheduling mode. | U | ERXDTXWEAI
+0x05 | enableRxAndTxWithEnhancedAddressInformation
+This value indicates that the addressed bus master shall switch the related
+sub-bus segment to the application scheduling mode. | U | ERXTXWEAI
+0x06 – 0x3F | ISOSAEReserved
+This range of values is reserved by this document for future definition. | M | ISOSAERESRVD
+0x40 – 0x5F | vehicleManufacturerSpecific
+This range of values is reserved for vehicle manufacturer specific use. | U | VMS
+
+---
+
+Bits 6 – 0 | Description | Cvt | Mnemonic
+0x60 – 0x7E | systemSupplierSpecific
+This range of values is reserved for system supplier specific use. | U | SSS
+0x7F | ISOSAEReserved
+This value is reserved by this document for future definition. | M | ISOSAERESRVD
+
+---
+
+Definition
+communicationType
+This parameter is used to reference the kind of communication to be controlled. The communicationType parameter is a
+bit-code value, which allows controlling multiple communication types at the same time. (see Annex B.1 for the coding of
+the communicationType data-parameter)
+nodeIdentificationNumber
+This 2 byte parameter is used to identify a node on a sub-network somewhere in the vehicle, which can not be
+addressed using the addressing methods of the lower OSI layers 1 to 6. This parameter is only present, if the sub-
+function parameter controlType is set to 0x04 or 0x05 (see Annex B.4 for the coding of the nodeIdentificationNumber
+data-parameter)
+
+---
+
+A_Data byte | Parameter Name | Cvt | Byte Value | Mnemonic
+#1 | CommunicationControl Response SID | M | 0x68 | CCPR
+#2 | sub-function = [ controlType ] | M | 0x00 – 0x7F | LEV_CTRLTP
+
+---
+
+Definition
+controlType
+This parameter is an echo of bits 6 - 0 of the sub-function parameter from the request message.
+
+---
+
+NRC | Description | Mnemonic
+0x12 | sub-functionNotSupported
+This NRC shall be sent if the sub-function parameter is not supported. | SFNS
+0x13 | incorrectMessageLengthOrInvalidFormat
+This NRC shall be sent if the length of the message is wrong. | IMLOIF
+0x22 | conditionsNotCorrect
+Used when the server is in a critical normal mode activity and therefore cannot
+disable/enable the requested communication type. | CNC
+0x31 | requestOutOfRange
+The server shall use this response code, if it detects an error in the communicationType or
+nodeIdentificationNumber parameter. | ROOR
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Request SID |  | 0x28 | CC
+#2 | controlType = enableRxAndDisableTx,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x01 | ERXTX
+#3 | communicationType = network management |  | 0x02 | NWMCP
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Response SID |  | 0x68 | CCPR
+#2 | ControlType |  | 0x01 | CTRLTP
+
+---
+
+Message direction |  | client → server |  | 
+Message Type |  | Request |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Request SID |  | 0x28 | CC
+#2 | controlType =
+enableRxAndDisableTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x04 | ERXTX
+#3 | communicationType = normal messages |  | 0x01 | NMCP
+#4 | nodeIdentificationNumber (high byte) |  | 0x00 | NIN
+#5 | nodeIdentificationNumber (low byte) |  | 0x0A | NIN
+
+---
+
+Message direction |  | server → client |  | 
+Message Type |  | Response |  | 
+A_Data byte | Description (all values are in hexadecimal) |  | Byte Value | Mnemonic
+#1 | CommunicationControl Response SID |  | 0x68 | CCPR
+#2 | controlType =
+enableRxAndDisableTxWithEnhancedAddressInformation,
+suppressPosRspMsgIndicationBit = FALSE |  | 0x04 | ERXTX
