@@ -19,6 +19,16 @@ A scalable, LLM-powered multi-agent system to query and compare **Unified Diagno
 
 ---
 
+## 🧠 Dual Retrieval Modes
+
+| Type              | Description |
+|-------------------|-------------|
+| 🤖 **Reasoning RAG** | Uses agentic reasoning (FunctionAgent + ReActAgent) with reranking |
+| 📄 **Naive RAG**      | Simple vector search across all docs, no reasoning or tool routing |
+
+Both responses are shown in the UI for transparency and comparison.
+----
+
 ## 📂 Project Structure
 
 ```
@@ -90,7 +100,7 @@ Then visit 👉 [http://localhost:8501](http://localhost:8501)
 
 ---
 
-## 📸 UI Screenshots: Attachd The  CHAT HISTORY which contains UI
+## 📸 UI Screenshots: 
 
 * Upload `.txt` files of UDS services
 * Click **"Initialize Services"**
@@ -98,7 +108,10 @@ Then visit 👉 [http://localhost:8501](http://localhost:8501)
 
   * *“Compare ECU Reset, Tester Present, Link control services and explain how they are related”*
   * *“	In a scenario where the ECU is reset frequently, how should Tester Present messages be scheduled?”*
+  
+📎 **Full example session** (with queries, responses, and UI view) is available in [`CHAT_HISTORY_WITH_UI.pdf`](./CHAT_HISTORY_WITH_UI.pdf).
 
+📊 You can also check out an example trace log from Traceloop in [`TraceLoop_obervability.png`](./TraceLoop_obervability.png).
 ---
 
 ## 🧠 How It Works
@@ -156,7 +169,21 @@ volumes:
 ```
 
 ---
+## 🧪 How to Test It
 
+* Upload 2–3 `.txt` UDS service files from `DATAN/`
+* Click **"Initialize Services"**
+* Ask questions like:
+
+  * “Compare ECU Reset and Link Control”
+  * “What are the subfunction parameters in DiagnosticSessionControl?”
+  * “Summarize Tester Present”
+* Observe two outputs:
+
+  * 🔹 **Multi-agent RAG** (ReAct reasoning)
+  * 🔸 **Naive RAG** (baseline search)
+* Check your logs on [Traceloop](https://app.traceloop.com) if API key is set
+---
 ## 💡 Example Queries
 
 * Compare ECU Reset, Link Control and Tester Present Services and explain how they are releated
