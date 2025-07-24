@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  uds-backend:
+    build: .
+    ports:
+      - "8501:8501"    # Or change to your app port if not 8501
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+      - ./summaries:/app/summaries
+      - ./DATAN:/app/DATAN   # Mount DATAN folder for reading .txt files

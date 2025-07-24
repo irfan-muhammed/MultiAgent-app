@@ -1,0 +1,5 @@
+.env
+DATAN/
+storage/
+summaries/
+*.pyc
